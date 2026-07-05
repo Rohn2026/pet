@@ -279,9 +279,9 @@
     <div class="card" id="sumCard">
       <h3 style="color:#2b5aa7">📋 Day 1 学习总结</h3>
       <div class="stats" id="sumStats"></div>
-      <div class="sum-h r">🔴 意思不熟（单词或短语说不出意思）</div><div id="sumRed"></div>
+      <div class="sum-h r">🔴 意思仍需注意（订正后还没过的）</div><div id="sumRed"></div>
       <div class="sum-h b">🔵 发音待练（睡前点🔊跟读一遍）</div><div id="sumBlue"></div>
-      <div class="sum-h y">🟡 说不出词（看释义/替换想不起单词）</div><div id="sumYellow"></div>
+      <div class="sum-h y">🟡 说词仍需注意（订正后还没过的）</div><div id="sumYellow"></div>
       <div class="sum-h n">📝 生词本</div><div id="sumNotes"></div>
       <div class="sum-h n">✍ 难句笔记</div><div id="sumStruct"></div>
       <div class="btn-row">
@@ -363,9 +363,12 @@ const SENT_IDX = [0,1,2,3,3,2,4,5,10,10,7,7,9,6,8,9,10,11,12,13,14,15,16,17,17,1
 
 // ===== 状态存档 =====
 const KEY = "pet-3rounds-day1-v2";
-let S = { red: [], blue: [], yellow: [], notes: [], structNotes: [], done: [false, false, false],
+let S = { red: [], blue: [], yellow: [], redEver: [], yellowEver: [], notes: [], structNotes: [], done: [false, false, false],
           prog1: null, prog2: null, prog3: null, seenSents: [] };
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(S, saved); } catch (e) {}
+// 兼容旧存档：把当前红/黄词补进“最初”集合，保证战报数不小于已标记数
+S.redEver = Array.from(new Set((S.redEver || []).concat(S.red)));
+S.yellowEver = Array.from(new Set((S.yellowEver || []).concat(S.yellow)));
 // 保存失败（如预览窗口/隐私模式禁用存储）时静默跳过，不影响正常使用
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -377,7 +380,12 @@ function shuffle(arr) {
   }
   return a;
 }
-function addMark(list, wi) { if (!S[list].includes(wi)) S[list].push(wi); save(); }
+function addMark(list, wi) {
+  if (!S[list].includes(wi)) S[list].push(wi);
+  if (list === "red" && !S.redEver.includes(wi)) S.redEver.push(wi);
+  if (list === "yellow" && !S.yellowEver.includes(wi)) S.yellowEver.push(wi);
+  save();
+}
 function clearMark(list, wi) { S[list] = S[list].filter(x => x !== wi); save(); }
 
 // ===== 发音（有道真人英音，失败退回系统语音）=====
@@ -416,7 +424,7 @@ function renderHome() {
 }
 function resetAll() {
   if (!confirm("确定清空今天所有标记和笔记吗？")) return;
-  S = { red: [], blue: [], yellow: [], notes: [], structNotes: [], done: [false, false, false],
+  S = { red: [], blue: [], yellow: [], redEver: [], yellowEver: [], notes: [], structNotes: [], done: [false, false, false],
         prog1: null, prog2: null, prog3: null, seenSents: [] };
   save(); renderHome();
 }
@@ -587,7 +595,7 @@ function r1Show() {
 function r1JudgeMeaning(ok) {
   const wi = r1Order[r1Idx];
   if (!ok) addMark("red", wi);
-  else if (!r1IsRequiz) clearMark("red", wi);
+  else clearMark("red", wi);  // 认读对了就从红词划掉（含红词再考），战报另存 redEver
   const w = WORDS[wi];
   document.getElementById("r1a").style.display = "none";
   // 第2段：中文 + 音节 + 音标(小) + 发音
@@ -697,7 +705,7 @@ function r2Show() {
 function r2Judge(ok) {
   const wi = r2Order[r2Idx];
   if (!ok) addMark("yellow", wi);
-  else if (!r2IsRequiz) clearMark("yellow", wi);
+  else clearMark("yellow", wi);  // 说出来了就从黄词划掉（含黄词再考），战报另存 yellowEver
   const w = WORDS[wi];
   document.getElementById("r2word").innerHTML = S.yellow.includes(wi) ? `<span class="mark-yellow">${w[0]}</span>` : w[0];
   document.getElementById("r2judge").style.display = "none";
@@ -786,6 +794,7 @@ function r3Show() {
 function r3Judge(ok) {
   const wi = r3Order[r3Idx];
   if (!ok) addMark("yellow", wi);
+  else clearMark("yellow", wi);  // 冲刺关答对也从黄词划掉
   const w = WORDS[wi];
   document.getElementById("r3word").innerHTML = S.yellow.includes(wi) ? `<span class="mark-yellow">${w[0]}</span>` : w[0];
   document.getElementById("r3cn").textContent = w[1] + "　" + w[4];
@@ -811,8 +820,13 @@ function r3Next() {
 function showSummary() {
   const weak = new Set(S.red.concat(S.yellow));
   const passed = WORDS.length - weak.size;
+  const redFixed = S.redEver.length - S.red.length;
+  const yellowFixed = S.yellowEver.length - S.yellow.length;
   document.getElementById("sumStats").innerHTML =
-    `今日 ${WORDS.length} 词：🔴 意思弱 <b>${S.red.length}</b> · 🔵 发音待练 <b>${S.blue.length}</b> · 🟡 说不出 <b>${S.yellow.length}</b><br>完全过关 <b>${passed} / ${WORDS.length}</b> 🎉`;
+    `今日 ${WORDS.length} 词　完全过关 <b>${passed} / ${WORDS.length}</b> 🎉<br>`
+    + `🔴 意思：最初标红 <b>${S.redEver.length}</b> → 已订正 <b>${redFixed}</b> → 仍需注意 <b>${S.red.length}</b><br>`
+    + `🟡 说词：最初说不出 <b>${S.yellowEver.length}</b> → 已订正 <b>${yellowFixed}</b> → 仍需注意 <b>${S.yellow.length}</b><br>`
+    + `🔵 发音待练 <b>${S.blue.length}</b>`;
   const red = document.getElementById("sumRed"); red.innerHTML = "";
   if (!S.red.length) red.innerHTML = '<div class="empty">没有红词 🎉</div>';
   S.red.forEach(wi => { const w = WORDS[wi]; red.innerHTML += `<div class="sum-item"><span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn">${w[1]} ${w[4]} · 💡 ${w[6]} ${w[7]}</span></div>`; });
@@ -833,7 +847,9 @@ function showSummary() {
 function copySummary() {
   const weak = new Set(S.red.concat(S.yellow));
   const passed = WORDS.length - weak.size;
-  let txt = `PET Day1 背词总结\n今日${WORDS.length}词：🔴意思弱${S.red.length} · 🔵发音待练${S.blue.length} · 🟡说不出${S.yellow.length} · 完全过关${passed}/${WORDS.length}\n`;
+  const redFixed = S.redEver.length - S.red.length;
+  const yellowFixed = S.yellowEver.length - S.yellow.length;
+  let txt = `PET Day1 背词总结\n今日${WORDS.length}词 · 完全过关${passed}/${WORDS.length}\n🔴意思：最初标红${S.redEver.length}→已订正${redFixed}→仍剩${S.red.length}\n🟡说词：最初说不出${S.yellowEver.length}→已订正${yellowFixed}→仍剩${S.yellow.length}\n🔵发音待练${S.blue.length}\n`;
   txt += "\n🔴 意思不熟：\n";
   txt += S.red.length ? S.red.map(wi => `${WORDS[wi][0]} ${WORDS[wi][1]} ${WORDS[wi][4]}（${WORDS[wi][6]} ${WORDS[wi][7]}）`).join("\n") : "无";
   txt += "\n\n🔵 发音待练：\n";
