@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PET 三轮背词法 · Day 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(160deg, #eef4ff 0%, #fdf6ec 100%);
+    min-height: 100vh; padding: 20px 14px 40px; color: #333;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 21px; text-align: center; color: #2b5aa7; }
+  .sub { text-align: center; font-size: 12.5px; color: #888; margin: 6px 0 18px; }
+  .card {
+    background: #fff; border-radius: 16px; padding: 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08); margin-bottom: 14px;
+  }
+  button {
+    border: none; border-radius: 12px; padding: 13px 20px; font-size: 15.5px;
+    font-family: inherit; cursor: pointer; transition: transform .1s;
+  }
+  button:active { transform: scale(.96); }
+  .primary { background: #2b5aa7; color: #fff; }
+  .secondary { background: #eef2f8; color: #2b5aa7; }
+  .green { background: #2e9e5b; color: #fff; }
+  .red { background: #d9534f; color: #fff; }
+  .blue { background: #2b7de0; color: #fff; }
+  .yellow { background: #e0a800; color: #fff; }
+  .ghost { background: transparent; color: #999; font-size: 13px; padding: 8px 12px; }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* 首页 */
+  .round-btn {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    background: #fff; border-radius: 16px; padding: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.07); margin-bottom: 12px;
+    text-align: left; cursor: pointer; border: 2px solid transparent;
+  }
+  .round-btn:hover { border-color: #bcd0ee; }
+  .round-btn .num {
+    width: 46px; height: 46px; border-radius: 50%; background: #2b5aa7; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .round-btn .t { font-size: 16.5px; font-weight: bold; color: #333; }
+  .round-btn .d { font-size: 12.5px; color: #999; margin-top: 3px; line-height: 1.5; }
+  .badge { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: 10px; margin-left: 6px; }
+  .badge.red-b { background: #fdecea; color: #d9534f; }
+  .badge.yellow-b { background: #fff6d9; color: #b8860b; }
+  .badge.blue-b { background: #e3efff; color: #2b7de0; }
+  .badge.done-b { background: #e6f4ec; color: #2e9e5b; }
+
+  /* 测试界面 */
+  .progress { text-align: center; font-size: 14px; color: #999; margin-bottom: 14px; }
+  .q-word { text-align: center; font-size: 42px; font-weight: bold; color: #2b5aa7; letter-spacing: 1px; }
+  .q-def { font-size: 19px; color: #333; text-align: center; line-height: 1.7; }
+  .q-cn { font-size: 18px; color: #333; text-align: center; margin-top: 8px; }
+  .q-syn3 { font-size: 24px; font-weight: bold; color: #b04a22; text-align: center; line-height: 1.7; }
+  .task-tip { text-align: center; font-size: 13.5px; color: #b04a22; margin: 14px 0 4px; }
+  .answer-panel { border-top: 1px dashed #ddd; margin-top: 18px; padding-top: 16px; text-align: center; }
+  .syll { font-size: 30px; font-weight: bold; color: #2b5aa7; letter-spacing: 1px; }
+  .phon { font-size: 13px; color: #aaa; margin-top: 4px; }
+  .mark-red { background: #ffd6d1; padding: 0 4px; border-radius: 4px; }
+  .mark-yellow { background: #ffe9a8; padding: 0 4px; border-radius: 4px; }
+  .mark-blue { background: #cfe4ff; padding: 0 4px; border-radius: 4px; }
+
+  /* 可点词（释义、例句、短语通用） */
+  .sent { font-size: 20px; line-height: 1.9; color: #333; }
+  span.w { cursor: pointer; border-radius: 4px; padding: 0 1px; }
+  span.w:hover { background: #eef4ff; }
+  span.w.target { font-weight: bold; color: #2b5aa7; }
+  span.w.noted { background: #ffe9a8; }
+  .sent-cn { font-size: 15px; color: #888; line-height: 1.8; margin-top: 12px; display: none; }
+  .sent-cn.show { display: block; }
+  .note-tip { font-size: 12.5px; color: #aaa; text-align: center; margin-top: 10px; }
+
+  /* 总结 */
+  .stats { text-align: center; font-size: 14.5px; color: #555; background: #f4f7fb; border-radius: 10px; padding: 10px; margin: 10px 0 4px; line-height: 1.8; }
+  .sum-h { font-size: 15.5px; font-weight: bold; margin: 14px 0 8px; }
+  .sum-h.r { color: #d9534f; } .sum-h.y { color: #b8860b; } .sum-h.b { color: #2b7de0; } .sum-h.n { color: #2b5aa7; }
+  .sum-item { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px dashed #eee; font-size: 15.5px; flex-wrap: wrap; }
+  .sum-item .en { font-weight: bold; color: #2b5aa7; min-width: 120px; }
+  .sum-item .cn { color: #888; font-size: 13.5px; flex: 1; min-width: 180px; }
+  .sum-note { padding: 7px 4px; border-bottom: 1px dashed #eee; font-size: 14.5px; color: #555; line-height: 1.6; }
+  .empty { color: #bbb; font-size: 13.5px; padding: 6px 4px; }
+  .speak-icon { cursor: pointer; user-select: none; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+  /* 底部查词条 */
+  #dictBar {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px;
+    max-width: 560px; width: calc(100% - 32px);
+    background: #333; color: #fff; border-radius: 12px; padding: 12px 16px;
+    font-size: 14.5px; line-height: 1.6; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    display: none; z-index: 99;
+  }
+  #dictBar b { color: #ffd66e; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="margin-bottom:6px"><a href="index.html" style="font-size:13px;color:#999;text-decoration:none">← 返回目录</a></div>
+  <h1>📚 PET 三轮背词法 · Day 2</h1>
+  <div class="sub">Test 3 &amp; Test 4 核心词 · 共 37 个 · 每轮乱序出题 · 记录自动保存</div>
+
+  <!-- ========== 首页 ========== -->
+  <div class="screen active" id="home">
+    <button class="round-btn" onclick="startR1()">
+      <div class="num">1</div>
+      <div><div class="t">第一遍：认读关 <span id="r1badge"></span></div>
+      <div class="d">读词说意思（❌标红）→ 对发音（❌标蓝）→ 短语说意思（❌标红）</div></div>
+    </button>
+    <button class="round-btn" onclick="startR2()">
+      <div class="num">2</div>
+      <div><div class="t">第二遍：理解应用关 <span id="r2badge"></span></div>
+      <div class="d">看英文释义说单词（❌标黄）→ 例句朗读翻译</div></div>
+    </button>
+    <button class="round-btn" onclick="startR3()">
+      <div class="num">3</div>
+      <div><div class="t">第三遍：考点冲刺关 <span id="r3badge"></span></div>
+      <div class="d">出同义替换（PET考法）→ 说单词（❌标黄），快问快答</div></div>
+    </button>
+    <button class="round-btn" onclick="showSummary()">
+      <div class="num" style="background:#b04a22">✓</div>
+      <div><div class="t">今日总结 <span id="sumBadge"></span></div>
+      <div class="d">战报 + 红/蓝/黄词 + 生词本 + 难句笔记，可复制、可打印</div></div>
+    </button>
+    <div class="btn-row"><button class="ghost" onclick="resetAll()">🗑 清空今天的记录，重新开始</button></div>
+  </div>
+
+  <!-- ========== 第一轮：认读关 ========== -->
+  <div class="screen" id="r1">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span class="progress" id="r1prog"></span><span style="width:60px"></span></div>
+    <div class="card">
+      <div class="q-word" id="r1word"></div>
+
+      <!-- 第1段：认词 -->
+      <div id="r1a">
+        <div class="task-tip">👦 让孩子读出这个词，并说出中文意思</div>
+        <div class="btn-row" id="r1aJudge">
+          <button class="green" onclick="r1JudgeMeaning(true)">✅ 意思对</button>
+          <button class="red" onclick="r1JudgeMeaning(false)">❌ 错或不记得（标红）</button>
+        </div>
+      </div>
+
+      <!-- 第2段：对发音 -->
+      <div class="answer-panel" id="r1b" style="display:none">
+        <div class="q-cn" id="r1cn"></div>
+        <div class="syll" id="r1syll" style="margin-top:12px"></div>
+        <div class="phon" id="r1phon"></div>
+        <div class="btn-row"><button class="secondary" onclick="playAudio(r1CurWord())">🔊 发音（按一次读一次）</button></div>
+        <div id="r1bJudgeWrap">
+          <div class="task-tip">👦 对照发音跟读——他刚才读对了吗？</div>
+          <div class="btn-row" id="r1bJudge">
+            <button class="green" onclick="r1JudgePron(true)">✅ 发音对</button>
+            <button class="blue" onclick="r1JudgePron(false)">❌ 发音错或不会读（标蓝）</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第3段：短语 -->
+      <div class="answer-panel" id="r1c" style="display:none">
+        <div class="q-def" id="r1phrase" style="font-size:22px;font-weight:bold"></div>
+        <div class="task-tip">👦 说出这个短语的意思</div>
+        <div class="btn-row" id="r1cJudge">
+          <button class="green" onclick="r1JudgePhrase(true)">✅ 对</button>
+          <button class="red" onclick="r1JudgePhrase(false)">❌ 错或不记得（标红）</button>
+        </div>
+        <div id="r1cAns" style="display:none">
+          <div class="q-cn" id="r1phraseCn"></div>
+          <div class="btn-row">
+            <button class="secondary" onclick="playAudio(r1CurPhrase())">🔊 读短语</button>
+            <button class="primary" onclick="r1Next()">下一个 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:12px"><button class="ghost" onclick="r1Prev()">↩ 上一个词（点错了返回重判）</button></div>
+    </div>
+  </div>
+
+  <!-- ========== 第一轮复习页 ========== -->
+  <div class="screen" id="r1rev">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span></span><span></span></div>
+    <div class="card">
+      <h3 style="color:#d9534f;margin-bottom:8px">🔴 意思不熟的词（<span id="r1revCount"></span> 个）</h3>
+      <p style="font-size:13px;color:#999;margin-bottom:10px">带孩子重点过一遍，然后点下面按钮再考</p>
+      <div id="r1revList"></div>
+      <h3 style="color:#2b7de0;margin:16px 0 8px" id="r1revBlueTitle">🔵 发音待练的词（<span id="r1revBlueCount"></span> 个）</h3>
+      <p style="font-size:13px;color:#999;margin-bottom:10px" id="r1revBlueTip">点🔊跟读几遍就算复习完成，不用重考</p>
+      <div id="r1revBlueList"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="r1Requiz()">🔁 红词再考一遍（只考意思）</button>
+        <button class="secondary" onclick="goHome()">完成，回首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 第二轮：理解应用关 ========== -->
+  <div class="screen" id="r2">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span class="progress" id="r2prog"></span><span style="width:60px"></span></div>
+    <div class="card">
+      <div class="q-def" id="r2def"></div>
+      <div class="note-tip">释义里有不认识的词？点那个词：收进生词本 + 显示意思</div>
+      <div class="task-tip">👦 说出这个英文单词</div>
+      <div class="btn-row" id="r2judge">
+        <button class="green" onclick="r2Judge(true)">✅ 说出来了</button>
+        <button class="yellow" onclick="r2Judge(false)">❌ 说不出或说错（标黄）</button>
+      </div>
+
+      <div class="answer-panel" id="r2ans" style="display:none">
+        <div class="q-word" id="r2word" style="font-size:34px"></div>
+        <div class="btn-row"><button class="secondary" onclick="playAudio(r2CurWord())">🔊 发音</button></div>
+        <div id="r2sentBlock" style="margin-top:14px">
+          <div class="task-tip" id="r2sentTip"></div>
+          <div class="sent" id="r2sent" style="text-align:left"></div>
+          <div class="sent-cn" id="r2sentCn" style="text-align:left"></div>
+          <div class="btn-row">
+            <button class="secondary" onclick="playAudio(r2CurSentEn())">🔊 听整句</button>
+            <button class="secondary" onclick="document.getElementById('r2sentCn').classList.toggle('show')">💡 对照翻译</button>
+            <button class="secondary" onclick="r2FlagSent()">⚠️ 翻译不顺</button>
+            <button class="primary" onclick="r2Next()">下一个 →</button>
+          </div>
+        </div>
+        <div class="btn-row" id="r2NextOnly" style="display:none">
+          <button class="primary" onclick="r2Next()">下一个 →</button>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:12px"><button class="ghost" onclick="r2Prev()">↩ 上一个词（点错了返回重判）</button></div>
+    </div>
+  </div>
+
+  <!-- ========== 第二轮复习黄词 ========== -->
+  <div class="screen" id="r2rev">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span></span><span></span></div>
+    <div class="card">
+      <h3 style="color:#b8860b;margin-bottom:8px">🟡 说不出的词（<span id="r2revCount"></span> 个）</h3>
+      <p style="font-size:13px;color:#999;margin-bottom:10px">看着释义和替换想单词，点🔊听发音</p>
+      <div id="r2revList"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="r2Requiz()">🔁 黄词再考一遍（释义→说词）</button>
+        <button class="secondary" onclick="goHome()">完成，回首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 第三轮：考点冲刺关 ========== -->
+  <div class="screen" id="r3">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span class="progress" id="r3prog"></span><span style="width:60px"></span></div>
+    <div class="card">
+      <div style="text-align:center;font-size:12.5px;color:#aaa;margin-bottom:8px">PET 考试里它会被换成这个说法 ↓</div>
+      <div class="q-syn3" id="r3syn"></div>
+      <div class="task-tip">👦 说出对应的核心单词</div>
+      <div class="btn-row" id="r3judge">
+        <button class="green" onclick="r3Judge(true)">✅ 说出来了</button>
+        <button class="yellow" onclick="r3Judge(false)">❌ 说不出或说错（标黄）</button>
+      </div>
+      <div class="answer-panel" id="r3ans" style="display:none">
+        <div class="q-word" id="r3word" style="font-size:34px"></div>
+        <div class="q-cn" id="r3cn" style="font-size:15px;color:#888"></div>
+        <div class="btn-row">
+          <button class="secondary" onclick="playAudio(r3CurWord())">🔊 发音</button>
+          <button class="primary" onclick="r3Next()">下一个 →</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px"><button class="ghost" onclick="r3Prev()">↩ 上一个（点错了返回重判）</button></div>
+    </div>
+  </div>
+
+  <!-- ========== 总结 ========== -->
+  <div class="screen" id="summary">
+    <div class="top-bar"><button class="ghost" onclick="goHome()">← 返回</button><span></span><span></span></div>
+    <div class="card" id="sumCard">
+      <h3 style="color:#2b5aa7">📋 Day 2 学习总结</h3>
+      <div class="stats" id="sumStats"></div>
+      <div class="sum-h r">🔴 意思不熟（单词或短语说不出意思）</div><div id="sumRed"></div>
+      <div class="sum-h b">🔵 发音待练（睡前点🔊跟读一遍）</div><div id="sumBlue"></div>
+      <div class="sum-h y">🟡 说不出词（看释义/替换想不起单词）</div><div id="sumYellow"></div>
+      <div class="sum-h n">📝 生词本</div><div id="sumNotes"></div>
+      <div class="sum-h n">✍ 难句笔记</div><div id="sumStruct"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="copySummary()">📋 复制总结文字</button>
+        <button class="secondary" onclick="window.print()">🖨 打印</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dictBar"></div>
+
+<script>
+// 单词, 词性, 音节, 音标, 中文, 英文释义, 短语EN, 短语CN, 同义替换
+const WORDS = [
+  ["simple","adj.","sim-ple","/ˈsɪmpl/","简单的；容易的","not hard to do or understand","a simple question","一个简单的问题","easy / not difficult"],
+  ["achievement","n.","a-chieve-ment","/əˈtʃiːvmənt/","成就；成绩","something good you have done through hard work","a great achievement","一项了不起的成就","accomplishment / success"],
+  ["attempt","v.","at-tempt","/əˈtempt/","尝试；试图","to try to do something, especially something difficult","attempt a jump","尝试跳跃","try (to do sth)"],
+  ["end up","phr","end up","/end ʌp/","最终变成；结果落得","to be in a place or situation after doing something","end up bored","最后感到无聊","finally become / turn out"],
+  ["honest","adj.","hon-est","/ˈɒnɪst/","诚实的","saying the truth about what you think","an honest answer","诚实的回答","truthful / telling the truth"],
+  ["trust","n.","trust","/trʌst/","信任","the belief that someone is honest and good","build trust","建立信任","belief / confidence in sb"],
+  ["diet","n.","di-et","/ˈdaɪət/","饮食","the food and drink that you usually eat","a healthy diet","健康的饮食","the food you usually eat"],
+  ["strict","adj.","strict","/strɪkt/","严格的","demanding that rules must be followed exactly","a strict teacher","严格的老师","firm about rules"],
+  ["active","adj.","ac-tive","/ˈæktɪv/","积极的；活跃的","doing a lot of physical things; busy and energetic","an active child","一个好动的孩子","busy and energetic"],
+  ["degree","n.","de-gree","/dɪˈɡriː/","学位","a qualification given by a university after finishing a course","a college degree","大学学位","a university qualification"],
+  ["imagine","v.","i-ma-gine","/ɪˈmædʒɪn/","想象","to form a picture of something in your mind","imagine the future","想象未来","picture sth in your mind"],
+  ["possibility","n.","pos-si-bil-i-ty","/ˌpɒsəˈbɪləti/","可能性","something that might happen or be true","a real possibility","一个真实的可能","chance / sth that might happen"],
+  ["succeed","v.","suc-ceed","/səkˈsiːd/","成功","to do what you tried to do","succeed in the exam","考试成功","do well / achieve what you wanted"],
+  ["interest","n.","in-ter-est","/ˈɪntrəst/","兴趣","the feeling of wanting to know more about something","lose interest","失去兴趣","the feeling of wanting to know more"],
+  ["regularly","adv.","reg-u-lar-ly","/ˈreɡjələli/","经常地；定期地","happening at regular times or often","exercise regularly","定期锻炼","often / at regular times"],
+  ["compete","v.","com-pete","/kəmˈpiːt/","竞争；参赛","to try to win against other people","compete in a race","参加赛跑","take part in a contest / try to win"],
+  ["develop","v.","de-vel-op","/dɪˈveləp/","培养；发展","to grow or improve over time","develop a skill","培养一项技能","grow / build up over time"],
+  ["expect","v.","ex-pect","/ɪkˈspekt/","期望；预期","to think that something will happen","expect good news","期待好消息","think sth will happen"],
+  ["improve","v.","im-prove","/ɪmˈpruːv/","提高；改进","to make something better","improve your English","提高你的英语","make better / get better"],
+  ["persuade","v.","per-suade","/pəˈsweɪd/","说服","to make someone do something by giving good reasons","persuade a friend","说服一个朋友","talk sb into sth / convince"],
+  ["challenge","n.","chal-lenge","/ˈtʃælɪndʒ/","挑战","something difficult that tests your abilities","a big challenge","一个巨大的挑战","a difficult task / test of ability"],
+  ["adult","n.","a-dult","/ˈædʌlt/","成人；成年人","a fully grown person","an adult ticket","一张成人票","a grown-up person"],
+  ["advanced","adj.","ad-vanced","/ədˈvɑːnst/","高级的；进阶的","at a high level of skill or knowledge","an advanced class","一个高级班","at a high level"],
+  ["beginner","n.","be-gin-ner","/bɪˈɡɪnə/","初学者","a person who is just starting to learn something","a beginner class","初学者班","someone just starting to learn"],
+  ["certificate","n.","cer-tif-i-cate","/səˈtɪfɪkət/","证书","an official document showing you have completed something","a certificate of English","英语证书","an official document / proof"],
+  ["level","n.","lev-el","/ˈlevl/","级别；程度","a point on a scale showing how good or advanced something is","the next level","下一个级别","a stage / point on a scale"],
+  ["organise","v.","or-gan-ise","/ˈɔːɡənaɪz/","组织；安排","to plan and arrange something so it works well","organise a party","组织一场聚会","plan and arrange"],
+  ["communication","n.","com-mu-ni-ca-tion","/kəˌmjuːnɪˈkeɪʃn/","交流；沟通","the sharing of ideas or information with others","good communication","良好的沟通","sharing ideas / information"],
+  ["volunteer","n.","vol-un-teer","/ˌvɒlənˈtɪə/","志愿者","a person who helps or works without being paid","a club volunteer","一名俱乐部志愿者","someone who helps without pay"],
+  ["decision","n.","de-ci-sion","/dɪˈsɪʒn/","决定","a choice you make about what to do","make a decision","做出决定","a choice"],
+  ["achieve","v.","a-chieve","/əˈtʃiːv/","实现；达到","to succeed in doing something good you planned","achieve a goal","实现目标","succeed in / reach"],
+  ["unexpected","adj.","un-ex-pect-ed","/ˌʌnɪkˈspektɪd/","意想不到的","not expected to happen","an unexpected gift","一份意外的礼物","surprising / not expected"],
+  ["benefit","n.","ben-e-fit","/ˈbenɪfɪt/","好处；益处","an advantage or good thing you get from something","health benefits","健康益处","an advantage / good thing"],
+  ["memory","n.","mem-o-ry","/ˈmeməri/","记忆；回忆","something you remember from the past","a happy memory","一段快乐的回忆","something you remember"],
+  ["qualify","v.","qual-i-fy","/ˈkwɒlɪfaɪ/","取得资格；合格","to pass a test to officially do a job","qualify as a teacher","取得教师资格","pass a test to do a job"],
+  ["reduce","v.","re-duce","/rɪˈdjuːs/","减少；降低","to make something smaller in amount or size","reduce the price","降低价格","make smaller / cut down"],
+  ["relationship","n.","re-la-tion-ship","/rɪˈleɪʃnʃɪp/","关系","the way two people or groups feel about each other","a close relationship","亲密的关系","the way people feel about each other"]
+];
+
+// 真题例句（重复例句已合并），targets 为句中要加粗的核心词形式
+const SENTS = [
+  {en:"He was already into it and wanted me to love it too – he made it look so simple.",cn:"他早已迷上了这项运动，也希望我爱上它——他让它看起来那么简单。",targets:["simple"]},
+  {en:"That achievement increased my trust in my own abilities.",cn:"那次成就增强了我对自己能力的信任。",targets:["achievement","trust"]},
+  {en:"I wasn't sure I'd even attempt the jumps that got me this score until I actually set off.",cn:"直到我真正出发前，我都不确定自己会不会去尝试那些让我拿到这个分数的跳跃动作。",targets:["attempt"]},
+  {en:"Some people enter loads of competitions and end up getting bored of snowboarding.",cn:"有些人参加很多比赛，最后反而对单板滑雪感到厌倦。",targets:["end","up"]},
+  {en:"If I'm honest, it has got stronger as I've gotten older, which always helps me to push myself harder.",cn:"老实说，随着年龄增长，这种感觉越来越强烈，它总是帮助我更努力地鞭策自己。",targets:["honest"]},
+  {en:"Although I train daily, it's nice not having to stick to quite a strict diet like I do in the winter.",cn:"虽然我每天训练，但不用像冬天那样严格遵守饮食规定，这很好。",targets:["strict","diet"]},
+  {en:"I'm wondering whether becoming a doctor is a possibility, if my active life allows me time for doing a college degree.",cn:"我在想，如果我忙碌的生活能给我时间去读一个大学学位，那么成为一名医生是不是有可能。",targets:["possibility","active","degree"]},
+  {en:"It's impossible to imagine myself growing tired of snowboarding.",cn:"我无法想象自己会对单板滑雪感到厌倦。",targets:["imagine"]},
+  {en:"I train hard in case I don't succeed as a professional snowboarder or if I get injured.",cn:"我努力训练，以防我没能成为一名职业单板滑雪运动员，或者万一我受伤了。",targets:["succeed"]},
+  {en:"She sometimes loses interest.",cn:"她有时会失去兴趣。",targets:["interest"]},
+  {en:"In the summer, Vanessa enjoys not having to train regularly.",cn:"夏天，Vanessa 喜欢不必定期训练的日子。",targets:["regularly"]},
+  {en:"I started competing aged ten.",cn:"我从十岁开始参加比赛。",targets:["competing"]},
+  {en:"After this experience, it wasn't long before I'd developed a love of the sport and had improved my ability too.",cn:"这次经历之后，没过多久我就培养出了对这项运动的热爱，我的能力也提高了。",targets:["developed","improved"]},
+  {en:"She expects too much of herself.",cn:"她对自己期望过高。",targets:["expects"]},
+  {en:"The hill looked unbelievably steep and scary, so my dad had to do a lot of persuading to get me on a board.",cn:"那座山坡陡得吓人，所以我爸爸费了好大劲才说服我踏上滑雪板。",targets:["persuading"]},
+  {en:"In NYC you can do different activities to challenge yourself and always learn something new.",cn:"在 NYC，你可以做各种不同的活动来挑战自己，并且总能学到新东西。",targets:["challenge"]},
+  {en:"There are different levels, from beginner to advanced, run by adult volunteers called leaders.",cn:"这里有不同的级别，从初学者到高级，由被称为“领队”的成年志愿者负责。",targets:["beginner","advanced","adult","volunteers"]},
+  {en:"When you complete each level you get a certificate.",cn:"当你完成每一个级别，你就会获得一张证书。",targets:["level","certificate"]},
+  {en:"My first challenge was to organise activities at a local children's club.",cn:"我的第一个挑战是组织当地一家儿童俱乐部的活动。",targets:["organise"]},
+  {en:"Being part of the team has really improved my communication with other people.",cn:"成为团队的一员，真正提高了我与他人的沟通能力。",targets:["communication"]},
+  {en:"Working at the children's club has helped Kyle to make a decision about his future career.",cn:"在儿童俱乐部工作帮助 Kyle 对自己未来的职业做出了决定。",targets:["decision"]},
+  {en:"Working at the club has helped Kyle to achieve his dream of working with children.",cn:"在俱乐部工作帮助 Kyle 实现了他和孩子们一起工作的梦想。",targets:["achieve"]},
+  {en:"Kyle's a good example of why people shouldn't be afraid of trying new things, and how this can bring unexpected benefits.",cn:"Kyle 就是一个很好的例子，说明为什么人们不该害怕尝试新事物，以及这样做能带来意想不到的好处。",targets:["unexpected","benefits"]},
+  {en:"Kyle didn't want to start helping at the children's club because his memories of going there weren't very positive.",cn:"Kyle 一开始不想去儿童俱乐部帮忙，因为他对去那里的记忆不是很美好。",targets:["memories"]},
+  {en:"I've decided that when I finish school I want to go to college to become a qualified youth worker.",cn:"我已经决定，中学毕业后我要上大学，成为一名合格的青年工作者。",targets:["qualified"]},
+  {en:"Even though Kyle's reduced the number of hours he works at the club, the work he does there is still extremely useful.",cn:"尽管 Kyle 减少了在俱乐部工作的时间，但他在那里做的工作仍然非常有用。",targets:["reduced"]},
+  {en:"The NYC leader let me keep on volunteering at the club because I'd built up some great relationships with the children.",cn:"NYC 的负责人让我继续在俱乐部做志愿者，因为我和孩子们建立了一些很好的关系。",targets:["relationships"]}
+];
+// 每个单词（按 WORDS 顺序）对应的例句编号
+const SENT_IDX = [0,1,2,3,4,1,5,5,6,6,7,6,8,9,10,11,12,13,12,14,15,16,16,16,17,17,18,19,16,20,21,22,22,23,24,25,26];
+
+// ===== 状态存档 =====
+const KEY = "pet-3rounds-day2-v1";
+let S = { red: [], blue: [], yellow: [], notes: [], structNotes: [], done: [false, false, false],
+          prog1: null, prog2: null, prog3: null, seenSents: [] };
+try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(S, saved); } catch (e) {}
+// 保存失败（如预览窗口/隐私模式禁用存储）时静默跳过，不影响正常使用
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function addMark(list, wi) { if (!S[list].includes(wi)) S[list].push(wi); save(); }
+function clearMark(list, wi) { S[list] = S[list].filter(x => x !== wi); save(); }
+
+// ===== 发音（有道真人英音，失败退回系统语音）=====
+let audio = null;
+function playAudio(text, onEnd) {
+  stopAudio();
+  audio = new Audio("https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(text) + "&type=1");
+  if (onEnd) audio.onended = onEnd;
+  audio.onerror = () => ttsFallback(text, onEnd);
+  audio.play().catch(() => ttsFallback(text, onEnd));
+}
+function stopAudio() { if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); audio = null; } speechSynthesis.cancel(); }
+function ttsFallback(text, onEnd) {
+  const vs = speechSynthesis.getVoices();
+  const v = vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en-GB"))
+    || vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en"))
+    || vs.find(x => x.lang === "en-GB") || vs.find(x => x.lang.startsWith("en"));
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-GB"; if (v) u.voice = v; u.rate = 0.85;
+  if (onEnd) u.onend = onEnd;
+  speechSynthesis.speak(u);
+}
+
+// ===== 界面切换 =====
+function show(id) { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0, 0); }
+function goHome() { stopAudio(); renderHome(); show("home"); }
+function progBadge(p) { return (p && p.idx < p.order.length) ? `<span class="badge yellow-b">进行到 ${p.idx + 1}/${p.order.length}</span>` : ''; }
+function renderHome() {
+  document.getElementById("r1badge").innerHTML = (S.done[0] ? '<span class="badge done-b">已完成</span>' : progBadge(S.prog1))
+    + (S.red.length ? `<span class="badge red-b">红 ${S.red.length}</span>` : '')
+    + (S.blue.length ? `<span class="badge blue-b">蓝 ${S.blue.length}</span>` : '');
+  document.getElementById("r2badge").innerHTML = (S.done[1] ? '<span class="badge done-b">已完成</span>' : progBadge(S.prog2))
+    + (S.yellow.length ? `<span class="badge yellow-b">黄 ${S.yellow.length}</span>` : '');
+  document.getElementById("r3badge").innerHTML = (S.done[2] ? '<span class="badge done-b">已完成</span>' : progBadge(S.prog3));
+  document.getElementById("sumBadge").innerHTML = S.notes.length ? `<span class="badge yellow-b">生词 ${S.notes.length}</span>` : '';
+}
+function resetAll() {
+  if (!confirm("确定清空今天所有标记和笔记吗？")) return;
+  S = { red: [], blue: [], yellow: [], notes: [], structNotes: [], done: [false, false, false],
+        prog1: null, prog2: null, prog3: null, seenSents: [] };
+  save(); renderHome();
+}
+
+// ===== 迷你词典（覆盖今天释义和例句中的生词与词组，查不到自动连有道在线查）=====
+const GLOSSARY = {
+  // 释义里常见词组/短语
+  "hard to":"难以……","not hard to":"不难……","through hard work":"通过努力工作","hard work":"努力；辛勤付出",
+  "tell the truth":"说真话","telling the truth":"说真话","the truth":"真相；实话",
+  "food and drink":"饮食（吃的和喝的）","follow rules":"遵守规则","must be followed":"必须被遵守",
+  "a lot of":"很多","physical things":"体力活动","busy and energetic":"忙碌又充满活力",
+  "form a picture":"在脑中构想画面","in your mind":"在你脑海里","might happen":"可能发生","be true":"是真的",
+  "wanting to know":"想要知道","at regular times":"在固定的时间","try to win":"努力去赢","win against":"战胜（某人）",
+  "over time":"随着时间","make better":"使变得更好","get better":"变得更好","giving good reasons":"给出充分的理由",
+  "test of ability":"能力的考验","fully grown":"完全长大的","high level":"高水平","just starting to":"刚开始……",
+  "official document":"正式的证件/文件","point on a scale":"刻度上的一个点","plan and arrange":"计划并安排",
+  "sharing of ideas":"分享想法","without being paid":"不拿报酬地","succeed in":"在……上成功","reach a goal":"达成目标",
+  "not expected":"没有预料到的","good thing":"好事；有利的东西","from the past":"过去的","pass a test":"通过考试",
+  "smaller in amount":"数量更少","the way":"（做某事的）方式","feel about":"对……有……感觉",
+  // 例句里可能不认识的词
+  "into it":"迷上它；很喜欢它","set off":"出发","loads of":"许多","end up":"最终变成","bored of":"对……感到厌倦",
+  "get bored":"感到无聊","snowboarding":"单板滑雪","snowboarder":"单板滑雪运动员","stronger":"更强的",
+  "gotten older":"长大了；变老了","push myself":"鞭策自己","push":"推；督促","harder":"更努力地",
+  "train":"训练","daily":"每天","stick to":"坚持；遵守","wondering":"想知道；琢磨","whether":"是否",
+  "becoming":"成为","allows":"允许；使能够","allow":"允许","impossible":"不可能的","growing tired":"逐渐厌倦",
+  "tired of":"厌倦……","in case":"以防；万一","injured":"受伤的","get injured":"受伤","loses":"失去",
+  "enjoys":"享受","aged ten":"十岁时","experience":"经历；体验","steep":"陡峭的","scary":"吓人的",
+  "board":"（滑雪）板","get me on":"让我上去","different":"不同的","activities":"活动","learn":"学习",
+  "levels":"级别（复数）","run by":"由……负责运营","leaders":"领队；负责人","called":"被称为",
+  "complete":"完成","local":"当地的","club":"俱乐部","children's club":"儿童俱乐部","team":"团队",
+  "future career":"未来的职业","career":"职业；事业","dream":"梦想","afraid":"害怕的","afraid of":"害怕……",
+  "trying":"尝试","new things":"新事物","bring":"带来","example":"例子","positive":"积极的；美好的",
+  "youth worker":"青年工作者","qualified":"合格的；有资格的","number of":"……的数量","hours":"（工作）时长",
+  "extremely":"极其；非常","useful":"有用的","keep on":"继续","volunteering":"做志愿者","built up":"建立起",
+  "great":"很棒的","increased":"增强了；增加了","increase":"增加","abilities":"能力（复数）","ability":"能力",
+  "score":"分数；得分","jumps":"跳跃动作","sport":"运动","goal":"目标","gift":"天赋；礼物",
+  "advantage":"优势；好处","proof":"证明","stage":"阶段","contest":"比赛","convince":"说服",
+  "grown-up":"成年的；大人","amount":"数量；总量","size":"大小","information":"信息","ideas":"想法（复数）",
+  "others":"其他人","people":"人们","remember":"记得","goal ":"目标"
+};
+const WORDMAP = {};
+WORDS.forEach(w => { WORDMAP[w[0].toLowerCase()] = w[1] + " " + w[4]; });
+const DICT_CACHE = {};
+
+function stemForms(w) {
+  const forms = [];
+  if (w.endsWith("ies")) forms.push(w.slice(0, -3) + "y");
+  if (w.endsWith("es")) forms.push(w.slice(0, -2));
+  if (w.endsWith("s")) forms.push(w.slice(0, -1));
+  ["ed", "ing"].forEach(suf => {
+    if (w.endsWith(suf)) {
+      const base = w.slice(0, -suf.length);
+      forms.push(base, base + "e");
+      if (base.length > 1 && base[base.length - 1] === base[base.length - 2]) forms.push(base.slice(0, -1));
+    }
+  });
+  if (w.endsWith("d")) forms.push(w.slice(0, -1));
+  return forms;
+}
+function lookupLocal(key) {
+  if (WORDMAP[key]) return WORDMAP[key] + "（今天的核心词哦！）";
+  if (GLOSSARY[key]) return GLOSSARY[key];
+  for (const f of stemForms(key)) {
+    if (WORDMAP[f]) return WORDMAP[f] + "（今天的核心词 " + f + " 的变形）";
+    if (GLOSSARY[f]) return GLOSSARY[f];
+  }
+  return null;
+}
+let dictTimer = null;
+function showDict(html) {
+  const bar = document.getElementById("dictBar");
+  bar.innerHTML = html;
+  bar.style.display = "block";
+  clearTimeout(dictTimer);
+  dictTimer = setTimeout(() => { bar.style.display = "none"; }, 9000);
+}
+function youdaoLookup(key, cb) {
+  if (DICT_CACHE[key] !== undefined) { cb(DICT_CACHE[key]); return; }
+  const cbName = "ydcb" + Math.floor(Math.random() * 1e9);
+  let done = false;
+  const sc = document.createElement("script");
+  const finish = (val) => {
+    if (done) return; done = true;
+    DICT_CACHE[key] = val; cb(val);
+    try { delete window[cbName]; sc.remove(); } catch (e) {}
+  };
+  window[cbName] = (data) => {
+    let ex = null;
+    try { const es = data && data.data && data.data.entries; if (es && es[0] && es[0].explain) ex = es[0].explain; } catch (e) {}
+    finish(ex);
+  };
+  sc.src = "https://dict.youdao.com/suggest?num=1&doctype=json&q=" + encodeURIComponent(key) + "&callback=" + cbName;
+  sc.onerror = () => finish(null);
+  document.body.appendChild(sc);
+  setTimeout(() => finish(null), 4000);
+}
+
+// ===== 可点词渲染：点生词 → 收进生词本 + 显示中文释义 + 发音（词组如 relating to 整体识别）=====
+function renderClickableWords(box, text, targets) {
+  box.innerHTML = "";
+  const targetsLower = (targets || []).map(t => t.toLowerCase());
+  const toks = text.split(" ");
+  const cleans = toks.map(t => t.replace(/[^a-zA-Z'-]/g, "").toLowerCase());
+  const spans = [];
+  toks.forEach((tok, i) => {
+    const sp = document.createElement("span");
+    sp.className = "w";
+    if (cleans[i] && targetsLower.includes(cleans[i])) sp.classList.add("target");
+    if (cleans[i] && S.notes.some(n => n === cleans[i] || n.split(" ").includes(cleans[i]))) sp.classList.add("noted");
+    sp.textContent = tok;
+    if (cleans[i]) sp.onclick = () => wordClick(i, cleans, spans);
+    spans.push(sp);
+    box.appendChild(sp);
+    box.appendChild(document.createTextNode(" "));
+  });
+}
+function wordClick(i, cleans, spans) {
+  let key = cleans[i], idxs = [i];
+  const c3 = cleans[i + 1] && cleans[i + 2] ? cleans[i] + " " + cleans[i + 1] + " " + cleans[i + 2] : null;
+  const c2n = cleans[i + 1] ? cleans[i] + " " + cleans[i + 1] : null;
+  const c2p = i > 0 && cleans[i - 1] ? cleans[i - 1] + " " + cleans[i] : null;
+  if (c3 && GLOSSARY[c3]) { key = c3; idxs = [i, i + 1, i + 2]; }
+  else if (c2n && GLOSSARY[c2n]) { key = c2n; idxs = [i, i + 1]; }
+  else if (c2p && GLOSSARY[c2p]) { key = c2p; idxs = [i - 1, i]; }
+  let added;
+  if (!S.notes.includes(key)) { S.notes.push(key); added = true; }
+  else { S.notes = S.notes.filter(x => x !== key); added = false; }
+  save();
+  idxs.forEach(j => { if (spans[j]) spans[j].classList.toggle("noted", added); });
+  playAudio(key);
+  const tail = added ? "　✅ 已收进生词本" : "　↩ 已移出生词本";
+  const local = lookupLocal(key);
+  if (local) {
+    showDict("📖 <b>" + key + "</b>：" + local + tail);
+  } else {
+    showDict("📖 <b>" + key + "</b>：查询中…" + tail);
+    youdaoLookup(key, ex => showDict("📖 <b>" + key + "</b>：" + (ex || "没查到，问问妈妈或查词典吧") + tail));
+  }
+}
+
+// ============================================================
+// 第一轮：认读关（认词 → 对发音 → 短语），乱序
+// ============================================================
+let r1Order = [], r1Idx = 0, r1IsRequiz = false;
+function startR1() {
+  if (S.prog1 && S.prog1.idx < S.prog1.order.length
+      && confirm(`第一遍上次进行到第 ${S.prog1.idx + 1} / ${S.prog1.order.length} 个，继续吗？\n（点“取消”从头开始）`)) {
+    r1Order = S.prog1.order; r1Idx = S.prog1.idx; r1IsRequiz = S.prog1.requiz;
+  } else {
+    r1Order = shuffle(WORDS.map((_, i) => i)); r1Idx = 0; r1IsRequiz = false;
+  }
+  show("r1"); r1Show();
+}
+function r1Requiz() {
+  if (!S.red.length) { alert("没有红词啦！"); return; }
+  r1Order = shuffle(S.red.slice()); r1Idx = 0; r1IsRequiz = true;
+  show("r1"); r1Show();
+}
+function r1CurWord() { return WORDS[r1Order[r1Idx]][0]; }
+function r1CurPhrase() { return WORDS[r1Order[r1Idx]][6]; }
+function r1Show() {
+  S.prog1 = { order: r1Order, idx: r1Idx, requiz: r1IsRequiz }; save();
+  const w = WORDS[r1Order[r1Idx]];
+  document.getElementById("r1prog").textContent = (r1IsRequiz ? "红词复习 " : "") + `${r1Idx + 1} / ${r1Order.length}`;
+  // 第1段：只出单词，不带音标词性
+  document.getElementById("r1word").textContent = w[0];
+  document.getElementById("r1a").style.display = "block";
+  document.getElementById("r1b").style.display = "none";
+  document.getElementById("r1c").style.display = "none";
+  document.getElementById("r1cAns").style.display = "none";
+}
+function r1JudgeMeaning(ok) {
+  const wi = r1Order[r1Idx];
+  if (!ok) addMark("red", wi);
+  else if (!r1IsRequiz) clearMark("red", wi);
+  const w = WORDS[wi];
+  document.getElementById("r1a").style.display = "none";
+  // 第2段：中文 + 音节 + 音标(小) + 发音
+  document.getElementById("r1cn").innerHTML = (w[1] + "　") + (S.red.includes(wi) ? `<span class="mark-red">${w[4]}</span>` : w[4]);
+  document.getElementById("r1syll").textContent = w[2].split("-").join(" · ");
+  document.getElementById("r1phon").textContent = w[3];
+  document.getElementById("r1b").style.display = "block";
+  playAudio(w[0]);
+  if (r1IsRequiz) {  // 复习模式只考意思：跳过发音判断，直接进短语
+    document.getElementById("r1bJudgeWrap").style.display = "none";
+    r1ShowPhrase();
+  } else {
+    document.getElementById("r1bJudgeWrap").style.display = "block";
+  }
+}
+function r1JudgePron(ok) {
+  const wi = r1Order[r1Idx];
+  if (!ok) addMark("blue", wi);
+  else if (!r1IsRequiz) clearMark("blue", wi);
+  if (S.blue.includes(wi)) {
+    document.getElementById("r1syll").innerHTML = `<span class="mark-blue">${WORDS[wi][2].split("-").join(" · ")}</span>`;
+  }
+  document.getElementById("r1bJudgeWrap").style.display = "none";
+  r1ShowPhrase();
+}
+function r1ShowPhrase() {
+  const w = WORDS[r1Order[r1Idx]];
+  renderClickableWords(document.getElementById("r1phrase"), w[6]);
+  document.getElementById("r1c").style.display = "block";
+  document.getElementById("r1cJudge").style.display = "flex";
+  document.getElementById("r1cAns").style.display = "none";
+}
+function r1JudgePhrase(ok) {
+  const wi = r1Order[r1Idx];
+  if (!ok) addMark("red", wi);
+  const w = WORDS[wi];
+  document.getElementById("r1phraseCn").innerHTML = (!ok ? `<span class="mark-red">${w[7]}</span>` : w[7]);
+  document.getElementById("r1cJudge").style.display = "none";
+  document.getElementById("r1cAns").style.display = "block";
+}
+function r1Prev() {
+  if (r1Idx <= 0) { alert("已经是第一个词了"); return; }
+  stopAudio(); r1Idx--; r1Show();
+}
+function r1Next() {
+  stopAudio();
+  r1Idx++;
+  if (r1Idx < r1Order.length) { r1Show(); return; }
+  if (!r1IsRequiz) S.done[0] = true;
+  S.prog1 = null;
+  save();
+  if (S.red.length || S.blue.length) { r1ShowReview(); }
+  else { alert("🎉 意思发音全部过关！"); goHome(); }
+}
+function r1ShowReview() {
+  document.getElementById("r1revCount").textContent = S.red.length;
+  const box = document.getElementById("r1revList");
+  box.innerHTML = S.red.length ? "" : '<div class="empty">没有红词 🎉</div>';
+  S.red.forEach(wi => {
+    const w = WORDS[wi];
+    const d = document.createElement("div");
+    d.className = "sum-item";
+    d.innerHTML = `<span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn"><span class="mark-red">${w[4]}</span> · 💡 ${w[6]} ${w[7]}</span>`;
+    box.appendChild(d);
+  });
+  document.getElementById("r1revBlueCount").textContent = S.blue.length;
+  const bbox = document.getElementById("r1revBlueList");
+  bbox.innerHTML = S.blue.length ? "" : '<div class="empty">没有发音问题 🎉</div>';
+  S.blue.forEach(wi => {
+    const w = WORDS[wi];
+    const d = document.createElement("div");
+    d.className = "sum-item";
+    d.innerHTML = `<span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn"><span class="mark-blue">${w[2].split("-").join(" · ")}</span>　${w[3]}</span>`;
+    bbox.appendChild(d);
+  });
+  show("r1rev");
+}
+
+// ============================================================
+// 第二轮：理解应用关（释义→说词，接例句朗读翻译），乱序
+// ============================================================
+let r2Order = [], r2Idx = 0, r2IsRequiz = false;
+function startR2() {
+  if (S.prog2 && S.prog2.idx < S.prog2.order.length
+      && confirm(`第二遍上次进行到第 ${S.prog2.idx + 1} / ${S.prog2.order.length} 个，继续吗？\n（点“取消”从头开始）`)) {
+    r2Order = S.prog2.order; r2Idx = S.prog2.idx; r2IsRequiz = S.prog2.requiz;
+  } else {
+    r2Order = shuffle(WORDS.map((_, i) => i)); r2Idx = 0; r2IsRequiz = false;
+  }
+  show("r2"); r2Show();
+}
+function r2Requiz() {
+  if (!S.yellow.length) { alert("没有黄词啦！"); return; }
+  r2Order = shuffle(S.yellow.slice()); r2Idx = 0; r2IsRequiz = true;
+  show("r2"); r2Show();
+}
+function r2CurWord() { return WORDS[r2Order[r2Idx]][0]; }
+function r2CurSentEn() { return SENTS[SENT_IDX[r2Order[r2Idx]]].en; }
+function r2Show() {
+  S.prog2 = { order: r2Order, idx: r2Idx, requiz: r2IsRequiz }; save();
+  const w = WORDS[r2Order[r2Idx]];
+  document.getElementById("r2prog").textContent = (r2IsRequiz ? "黄词复习 " : "") + `${r2Idx + 1} / ${r2Order.length}`;
+  renderClickableWords(document.getElementById("r2def"), w[5]);
+  document.getElementById("r2judge").style.display = "flex";
+  document.getElementById("r2ans").style.display = "none";
+}
+function r2Judge(ok) {
+  const wi = r2Order[r2Idx];
+  if (!ok) addMark("yellow", wi);
+  else if (!r2IsRequiz) clearMark("yellow", wi);
+  const w = WORDS[wi];
+  document.getElementById("r2word").innerHTML = S.yellow.includes(wi) ? `<span class="mark-yellow">${w[0]}</span>` : w[0];
+  document.getElementById("r2judge").style.display = "none";
+  document.getElementById("r2ans").style.display = "block";
+  playAudio(w[0]);
+  if (r2IsRequiz) {  // 复习模式只考“释义→说词”，不重读例句
+    document.getElementById("r2sentBlock").style.display = "none";
+    document.getElementById("r2NextOnly").style.display = "flex";
+    return;
+  }
+  document.getElementById("r2NextOnly").style.display = "none";
+  document.getElementById("r2sentBlock").style.display = "block";
+  // 例句：第一次完整读+翻译；重复句只说当前词在句中的意思
+  const si = SENT_IDX[wi];
+  const s = SENTS[si];
+  const seen = S.seenSents.includes(si);
+  document.getElementById("r2sentTip").textContent = seen
+    ? `这句刚读过 👦 快速说说 ${w[0]} 在句子里的意思就行`
+    : "👦 朗读整句，再自己翻译一遍";
+  renderClickableWords(document.getElementById("r2sent"), s.en, s.targets);
+  const cnEl = document.getElementById("r2sentCn");
+  cnEl.textContent = s.cn;
+  cnEl.classList.remove("show");
+}
+function r2FlagSent() {
+  const s = SENTS[SENT_IDX[r2Order[r2Idx]]];
+  const brief = s.en.length > 40 ? s.en.slice(0, 40) + "..." : s.en;
+  if (!S.structNotes.includes("翻译不顺：" + brief)) {
+    S.structNotes.push("翻译不顺：" + brief); save();
+  }
+  alert("已记入难句笔记 ✅");
+}
+function r2Prev() {
+  if (r2Idx <= 0) { alert("已经是第一个词了"); return; }
+  stopAudio(); r2Idx--; r2Show();
+}
+function r2Next() {
+  stopAudio();
+  if (!r2IsRequiz) {
+    const si = SENT_IDX[r2Order[r2Idx]];
+    if (!S.seenSents.includes(si)) { S.seenSents.push(si); save(); }
+  }
+  r2Idx++;
+  if (r2Idx < r2Order.length) { r2Show(); return; }
+  if (!r2IsRequiz) S.done[1] = true;
+  S.prog2 = null;
+  save();
+  if (S.yellow.length) { r2ShowReview(); } else { alert("🎉 全部说出来了，没有黄词！"); goHome(); }
+}
+function r2ShowReview() {
+  document.getElementById("r2revCount").textContent = S.yellow.length;
+  const box = document.getElementById("r2revList");
+  box.innerHTML = "";
+  S.yellow.forEach(wi => {
+    const w = WORDS[wi];
+    const d = document.createElement("div");
+    d.className = "sum-item";
+    d.innerHTML = `<span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en"><span class="mark-yellow">${w[0]}</span></span><span class="cn">${w[5]}<br>≈ ${w[8]}</span>`;
+    box.appendChild(d);
+  });
+  show("r2rev");
+}
+
+// ============================================================
+// 第三轮：考点冲刺关（同义替换→说词），乱序快问快答
+// ============================================================
+let r3Order = [], r3Idx = 0;
+function startR3() {
+  if (S.prog3 && S.prog3.order && S.prog3.idx < S.prog3.order.length
+      && confirm(`第三遍上次进行到第 ${S.prog3.idx + 1} / ${S.prog3.order.length} 个，继续吗？\n（点“取消”从头开始）`)) {
+    r3Order = S.prog3.order; r3Idx = S.prog3.idx;
+  } else {
+    r3Order = shuffle(WORDS.map((_, i) => i)); r3Idx = 0;
+  }
+  show("r3"); r3Show();
+}
+function r3CurWord() { return WORDS[r3Order[r3Idx]][0]; }
+function r3Show() {
+  S.prog3 = { order: r3Order, idx: r3Idx }; save();
+  const w = WORDS[r3Order[r3Idx]];
+  document.getElementById("r3prog").textContent = `${r3Idx + 1} / ${r3Order.length}`;
+  renderClickableWords(document.getElementById("r3syn"), w[8]);
+  document.getElementById("r3judge").style.display = "flex";
+  document.getElementById("r3ans").style.display = "none";
+}
+function r3Judge(ok) {
+  const wi = r3Order[r3Idx];
+  if (!ok) addMark("yellow", wi);
+  const w = WORDS[wi];
+  document.getElementById("r3word").innerHTML = S.yellow.includes(wi) ? `<span class="mark-yellow">${w[0]}</span>` : w[0];
+  document.getElementById("r3cn").textContent = w[1] + "　" + w[4];
+  document.getElementById("r3judge").style.display = "none";
+  document.getElementById("r3ans").style.display = "block";
+  playAudio(w[0]);
+}
+function r3Prev() {
+  if (r3Idx <= 0) { alert("已经是第一个了"); return; }
+  stopAudio(); r3Idx--; r3Show();
+}
+function r3Next() {
+  stopAudio();
+  r3Idx++;
+  if (r3Idx < r3Order.length) { r3Show(); return; }
+  S.done[2] = true; S.prog3 = null; save();
+  showSummary();
+}
+
+// ============================================================
+// 今日总结
+// ============================================================
+function showSummary() {
+  const weak = new Set(S.red.concat(S.yellow));
+  const passed = WORDS.length - weak.size;
+  document.getElementById("sumStats").innerHTML =
+    `今日 ${WORDS.length} 词：🔴 意思弱 <b>${S.red.length}</b> · 🔵 发音待练 <b>${S.blue.length}</b> · 🟡 说不出 <b>${S.yellow.length}</b><br>完全过关 <b>${passed} / ${WORDS.length}</b> 🎉`;
+  const red = document.getElementById("sumRed"); red.innerHTML = "";
+  if (!S.red.length) red.innerHTML = '<div class="empty">没有红词 🎉</div>';
+  S.red.forEach(wi => { const w = WORDS[wi]; red.innerHTML += `<div class="sum-item"><span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn">${w[1]} ${w[4]} · 💡 ${w[6]} ${w[7]}</span></div>`; });
+  const bl = document.getElementById("sumBlue"); bl.innerHTML = "";
+  if (!S.blue.length) bl.innerHTML = '<div class="empty">发音全对 🎉</div>';
+  S.blue.forEach(wi => { const w = WORDS[wi]; bl.innerHTML += `<div class="sum-item"><span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn">${w[2].split("-").join(" · ")}　${w[3]}</span></div>`; });
+  const ye = document.getElementById("sumYellow"); ye.innerHTML = "";
+  if (!S.yellow.length) ye.innerHTML = '<div class="empty">没有黄词 🎉</div>';
+  S.yellow.forEach(wi => { const w = WORDS[wi]; ye.innerHTML += `<div class="sum-item"><span class="speak-icon" onclick="playAudio('${w[0]}')">🔊</span><span class="en">${w[0]}</span><span class="cn">${w[5]}<br>≈ ${w[8]}</span></div>`; });
+  const no = document.getElementById("sumNotes"); no.innerHTML = "";
+  if (!S.notes.length) no.innerHTML = '<div class="empty">没有摘录生词</div>';
+  S.notes.forEach(w => { no.innerHTML += `<div class="sum-item"><span class="speak-icon" onclick="playAudio('${w}')">🔊</span><span class="en">${w}</span><span class="cn">${lookupLocal(w) || ""}</span></div>`; });
+  const st = document.getElementById("sumStruct"); st.innerHTML = "";
+  if (!S.structNotes.length) st.innerHTML = '<div class="empty">没有难句笔记</div>';
+  S.structNotes.forEach(t => { st.innerHTML += `<div class="sum-note">${t}</div>`; });
+  show("summary");
+}
+function copySummary() {
+  const weak = new Set(S.red.concat(S.yellow));
+  const passed = WORDS.length - weak.size;
+  let txt = `PET Day2 背词总结\n今日${WORDS.length}词：🔴意思弱${S.red.length} · 🔵发音待练${S.blue.length} · 🟡说不出${S.yellow.length} · 完全过关${passed}/${WORDS.length}\n`;
+  txt += "\n🔴 意思不熟：\n";
+  txt += S.red.length ? S.red.map(wi => `${WORDS[wi][0]} ${WORDS[wi][1]} ${WORDS[wi][4]}（${WORDS[wi][6]} ${WORDS[wi][7]}）`).join("\n") : "无";
+  txt += "\n\n🔵 发音待练：\n";
+  txt += S.blue.length ? S.blue.map(wi => `${WORDS[wi][0]}（${WORDS[wi][2]}）`).join("\n") : "无";
+  txt += "\n\n🟡 说不出词：\n";
+  txt += S.yellow.length ? S.yellow.map(wi => `${WORDS[wi][0]} — ${WORDS[wi][5]}｜≈ ${WORDS[wi][8]}`).join("\n") : "无";
+  txt += "\n\n📝 生词本：\n" + (S.notes.length ? S.notes.map(w => `${w} ${lookupLocal(w) || ""}`.trim()).join("\n") : "无");
+  txt += "\n\n✍ 难句笔记：\n" + (S.structNotes.length ? S.structNotes.join("\n") : "无");
+  navigator.clipboard.writeText(txt).then(() => alert("已复制 ✅ 可以粘贴到微信/备忘录"), () => alert("复制失败，请手动截图"));
+}
+
+renderHome();
+</script>
+</body>
+</html>
