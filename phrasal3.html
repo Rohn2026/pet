@@ -49,6 +49,7 @@
   .ok { color: #2e9e5b; }
   .no { color: #d9534f; }
   .full { font-size: 13px; color: #999; margin-top: 2px; font-weight: normal; }
+  .reveal { font-size: 16px; color: #b04a22; font-weight: bold; margin-top: 6px; }
   .summary { text-align: center; }
   .summary .big { font-size: 40px; font-weight: bold; color: #2b5aa7; margin: 8px 0; }
   .tip { text-align: center; font-size: 12px; color: #aaa; margin-top: 18px; line-height: 1.7; }
@@ -160,7 +161,7 @@ function render(){
   const levelName = {1:"裸词组",2:"句子里",3:"真题句型"}[level];
   card.innerHTML =
     '<div class="progress">第 '+(pos+1)+' / '+queue.length+' 个 · 第'+level+'层（'+levelName+'）</div>'+
-    '<div class="cn">'+item.cn+'</div>'+
+    (level===1 ? '<div class="cn">'+item.cn+'</div>' : '')+
     '<button class="speak" onclick="speak(\''+item.pv+'\')">🔊 听词组</button>'+
     '<div class="sent">'+esc(parts[0])+'<input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false">'+esc(parts[1]||"")+'</div>'+
     '<div class="feedback" id="fb"></div>'+
@@ -181,7 +182,7 @@ function check(){
   const inp = document.getElementById("ans"); inp.disabled = true;
   if(val === item.gap.toLowerCase()){
     right++;
-    fb.innerHTML = '<span class="ok">✓ 对了！<span class="full">'+item.pv+' = '+item.cn+'</span></span>';
+    fb.innerHTML = '<span class="ok">✓ 对了！</span><div class="reveal">'+item.pv+' — '+item.cn+'</div>';
     // 答对则从长期错词表移除
     S.wrong = S.wrong.filter(pv=>pv!==item.pv); save(); refreshWrongBadge();
     setTimeout(next, 900);
