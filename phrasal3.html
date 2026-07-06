@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PET 词组动词填空 · Part 6 专练</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(160deg, #eef4ff 0%, #fdf6ec 100%);
+    min-height: 100vh; padding: 22px 16px 40px; color: #333;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; }
+  a.back { font-size: 13px; color: #999; text-decoration: none; }
+  h1 { font-size: 21px; text-align: center; color: #2b5aa7; margin-top: 6px; }
+  .sub { text-align: center; font-size: 13px; color: #888; margin: 8px 0 18px; line-height: 1.6; }
+  .levels { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .lv {
+    border: none; border-radius: 12px; padding: 11px 14px; font-size: 14px; cursor: pointer;
+    font-family: inherit; background: #eef2f8; color: #2b5aa7; transition: transform .1s;
+  }
+  .lv.active { background: #2b5aa7; color: #fff; }
+  .lv:active { transform: scale(.96); }
+  .lv small { display: block; font-size: 11px; opacity: .8; margin-top: 2px; font-weight: normal; }
+  .card {
+    background: #fff; border-radius: 18px; padding: 24px 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    text-align: center;
+  }
+  .progress { font-size: 12.5px; color: #aaa; margin-bottom: 14px; }
+  .cn { font-size: 15px; color: #b04a22; font-weight: bold; margin-bottom: 4px; }
+  .speak { background: none; border: none; cursor: pointer; font-size: 17px; margin-bottom: 12px; }
+  .sent { font-size: 21px; line-height: 1.9; color: #222; margin: 10px 0 20px; word-spacing: 1px; }
+  .sent input {
+    width: 92px; font-size: 20px; text-align: center; border: none; border-bottom: 3px solid #2b5aa7;
+    background: #f4f8ff; font-family: inherit; padding: 3px 4px; border-radius: 6px 6px 0 0; color: #2b5aa7;
+    font-weight: bold;
+  }
+  .sent input:focus { outline: none; background: #e7f0ff; }
+  .btns { display: flex; gap: 10px; justify-content: center; }
+  button.act {
+    border: none; border-radius: 12px; padding: 13px 26px; font-size: 16px; font-family: inherit;
+    cursor: pointer; transition: transform .1s;
+  }
+  button.act:active { transform: scale(.96); }
+  .primary { background: #2b5aa7; color: #fff; }
+  .ghost { background: #eef2f8; color: #2b5aa7; }
+  .feedback { min-height: 30px; font-size: 16px; margin: 14px 0 4px; font-weight: bold; }
+  .ok { color: #2e9e5b; }
+  .no { color: #d9534f; }
+  .full { font-size: 13px; color: #999; margin-top: 2px; font-weight: normal; }
+  .summary { text-align: center; }
+  .summary .big { font-size: 40px; font-weight: bold; color: #2b5aa7; margin: 8px 0; }
+  .tip { text-align: center; font-size: 12px; color: #aaa; margin-top: 18px; line-height: 1.7; }
+  .badge { display:inline-block; font-size:12px; background:#eef2f8; color:#2b5aa7; border-radius:8px; padding:2px 8px; margin-left:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div><a class="back" href="index.html">← 返回目录</a></div>
+  <h1>🧩 词组动词填空 · Part 6 专练</h1>
+  <div class="sub">今天的 phrasal verbs · 三层递进 · <b>填空要拼对</b><br>看中文意思，把缺的小词打进去（down / off / up / to …）</div>
+
+  <div class="levels">
+    <button class="lv active" data-lv="1" onclick="start(1)">第1层<small>裸词组</small></button>
+    <button class="lv" data-lv="2" onclick="start(2)">第2层<small>句子里</small></button>
+    <button class="lv" data-lv="3" onclick="start(3)">第3层<small>真题句型</small></button>
+    <button class="lv" id="retryBtn" onclick="startWrong()" style="background:#fdece8;color:#d9534f">再练错词<small id="wrongN">0</small></button>
+  </div>
+
+  <div class="card" id="card"></div>
+
+  <div class="tip">拼错也算错（Part 6 是笔试，小词也要拼对）<br>练错的会自动收进「再练错词」</div>
+</div>
+
+<script>
+// pv=完整词组, gap=要填的小词, cn=中文, l1/l2/l3=三层句子(用 ___ 标空)
+const DATA = [
+  {pv:"turn down", gap:"down", cn:"拒绝；调低",
+   l1:"turn ___",
+   l2:"He turned ___ the invitation because he was too tired to go out.",
+   l3:"She was offered a place at the university, but she turned it ___ to start her own business instead."},
+  {pv:"turn up", gap:"up", cn:"出现；到场",
+   l1:"turn ___",
+   l2:"We waited for an hour, but she never turned ___ .",
+   l3:"Everyone expected him to be late, so they were surprised when he turned ___ early."},
+  {pv:"turn into", gap:"into", cn:"变成",
+   l1:"turn ___",
+   l2:"In the story, the frog turns ___ a handsome prince.",
+   l3:"With a lot of hard work, her small hobby slowly turned ___ a successful business."},
+  {pv:"put off", gap:"off", cn:"推迟",
+   l1:"put ___",
+   l2:"It started to rain, so they put ___ the football match until next week.",
+   l3:"You shouldn't put ___ your homework until the last minute, or you will feel stressed."},
+  {pv:"put on", gap:"on", cn:"穿上；戴上",
+   l1:"put ___",
+   l2:"It was cold outside, so she put ___ her coat before leaving.",
+   l3:"Before going on stage, the actors put ___ their costumes and make-up."},
+  {pv:"put out", gap:"out", cn:"熄灭；扑灭",
+   l1:"put ___",
+   l2:"The firefighters worked hard to put ___ the fire.",
+   l3:"Please put ___ your cigarette, as smoking is not allowed inside the building."},
+  {pv:"take off", gap:"off", cn:"脱下；(飞机)起飞",
+   l1:"take ___",
+   l2:"He took ___ his shoes before entering the house.",
+   l3:"The plane finally took ___ two hours late because of the bad weather."},
+  {pv:"take up", gap:"up", cn:"开始(某项爱好)",
+   l1:"take ___",
+   l2:"She took ___ swimming to keep fit during the summer.",
+   l3:"After he retired, he took ___ painting and soon became quite good at it."},
+  {pv:"get on well with", gap:"on", cn:"与…相处融洽",
+   l1:"get ___ well with",
+   l2:"She gets ___ well with all of her classmates.",
+   l3:"A good team member is someone who gets ___ well with the people around them."},
+  {pv:"look forward to", gap:"to", cn:"期待",
+   l1:"look forward ___",
+   l2:"I'm really looking forward ___ the summer holidays.",
+   l3:"Thank you for your invitation; we all look forward ___ seeing you next month."}
+];
+
+const KEY = "pet-phrasal-day3-v1";
+let S = { wrong: [] };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.wrong)) S.wrong = s.wrong; } catch(e){}
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+function refreshWrongBadge(){ document.getElementById("wrongN").textContent = S.wrong.length; }
+refreshWrongBadge();
+
+let level = 1, queue = [], pos = 0, right = 0, wrongThisRound = [], answered = false;
+
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function setActive(lv){
+  document.querySelectorAll(".lv").forEach(b=>b.classList.remove("active"));
+  const el = document.querySelector('.lv[data-lv="'+lv+'"]'); if(el) el.classList.add("active");
+}
+
+function start(lv){
+  level = lv; setActive(lv);
+  queue = shuffle(DATA.map((_,i)=>i));
+  pos = 0; right = 0; wrongThisRound = [];
+  render();
+}
+function startWrong(){
+  if(S.wrong.length===0){ alert("还没有练错的词，先做几轮吧～"); return; }
+  level = level; document.querySelectorAll(".lv").forEach(b=>b.classList.remove("active"));
+  // 用当前层级练错词；错词按 pv 找回
+  queue = shuffle(S.wrong.map(pv => DATA.findIndex(d=>d.pv===pv)).filter(i=>i>=0));
+  pos = 0; right = 0; wrongThisRound = [];
+  render();
+}
+
+function tmpl(item){ return item["l"+level]; }
+
+function render(){
+  answered = false;
+  const card = document.getElementById("card");
+  if(pos >= queue.length){ return summary(); }
+  const item = DATA[queue[pos]];
+  const parts = tmpl(item).split("___");
+  const levelName = {1:"裸词组",2:"句子里",3:"真题句型"}[level];
+  card.innerHTML =
+    '<div class="progress">第 '+(pos+1)+' / '+queue.length+' 个 · 第'+level+'层（'+levelName+'）</div>'+
+    '<div class="cn">'+item.cn+'</div>'+
+    '<button class="speak" onclick="speak(\''+item.pv+'\')">🔊 听词组</button>'+
+    '<div class="sent">'+esc(parts[0])+'<input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false">'+esc(parts[1]||"")+'</div>'+
+    '<div class="feedback" id="fb"></div>'+
+    '<div class="btns"><button class="act primary" id="go" onclick="check()">检查</button></div>';
+  const inp = document.getElementById("ans");
+  inp.focus();
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ answered ? next() : check(); } });
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function check(){
+  if(answered) return;
+  const item = DATA[queue[pos]];
+  const val = (document.getElementById("ans").value||"").trim().toLowerCase();
+  if(val===""){ return; }
+  answered = true;
+  const fb = document.getElementById("fb");
+  const inp = document.getElementById("ans"); inp.disabled = true;
+  if(val === item.gap.toLowerCase()){
+    right++;
+    fb.innerHTML = '<span class="ok">✓ 对了！<span class="full">'+item.pv+' = '+item.cn+'</span></span>';
+    // 答对则从长期错词表移除
+    S.wrong = S.wrong.filter(pv=>pv!==item.pv); save(); refreshWrongBadge();
+    setTimeout(next, 900);
+  } else {
+    fb.innerHTML = '<span class="no">✗ 正确答案：<b>'+item.gap+'</b>　<span class="full">'+item.pv+' = '+item.cn+'</span></span>';
+    if(!wrongThisRound.includes(item.pv)) wrongThisRound.push(item.pv);
+    if(!S.wrong.includes(item.pv)){ S.wrong.push(item.pv); save(); refreshWrongBadge(); }
+    document.getElementById("go").textContent = "下一个";
+    document.getElementById("go").setAttribute("onclick","next()");
+  }
+}
+
+function next(){ pos++; render(); }
+
+function summary(){
+  const card = document.getElementById("card");
+  const total = queue.length;
+  const pct = total? Math.round(right/total*100) : 0;
+  let msg = pct===100 ? "🎉 全对！小词全拿下！" : pct>=80 ? "很棒，接近满分！" : pct>=60 ? "不错，错的再练一轮～" : "多练几遍就顺了💪";
+  card.innerHTML =
+    '<div class="summary">'+
+    '<div class="progress">第'+level+'层完成</div>'+
+    '<div class="big">'+right+' / '+total+'</div>'+
+    '<div style="color:#888;margin-bottom:8px">准确率 '+pct+'%</div>'+
+    '<div style="margin-bottom:16px">'+msg+'</div>'+
+    (wrongThisRound.length? '<div style="font-size:13px;color:#d9534f;margin-bottom:14px">这轮错的：'+wrongThisRound.join("、")+'</div>':'')+
+    '<div class="btns">'+
+      (wrongThisRound.length? '<button class="act primary" onclick="retryThis()">只练这轮错的</button>':'')+
+      '<button class="act ghost" onclick="start(level)">再来一轮</button>'+
+    '</div>'+
+    (level<3? '<div style="margin-top:14px"><button class="act ghost" onclick="start('+(level+1)+')">进入第'+(level+1)+'层 →</button></div>':'')+
+    '</div>';
+}
+function retryThis(){
+  queue = shuffle(wrongThisRound.map(pv=>DATA.findIndex(d=>d.pv===pv)).filter(i=>i>=0));
+  pos=0; right=0; wrongThisRound=[]; render();
+}
+
+let audio=null;
+function speak(word){
+  if(audio){ audio.pause(); audio=null; }
+  audio = new Audio("https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(word)+"&type=1");
+  audio.play().catch(()=>{
+    const u=new SpeechSynthesisUtterance(word); u.lang="en-GB"; u.rate=.85; speechSynthesis.speak(u);
+  });
+}
+
+start(1);
+</script>
+</body>
+</html>
