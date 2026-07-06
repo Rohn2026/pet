@@ -60,7 +60,7 @@
 <div class="wrap">
   <div><a class="back" href="index.html">← 返回目录</a></div>
   <h1>🧩 词组动词填空 · Part 6 专练</h1>
-  <div class="sub">今天的 phrasal verbs · 三层递进 · <b>填空要拼对</b><br>看中文意思，把缺的小词打进去（down / off / up / to …）</div>
+  <div class="sub">今天的 phrasal verbs（54 个）· 三层递进 · <b>填空要拼对</b><br>看中文意思，把缺的小词打进去（down / off / up / to …）</div>
 
   <div class="levels">
     <button class="lv active" data-lv="1" onclick="start(1)">第1层<small>裸词组</small></button>
@@ -77,46 +77,59 @@
 <script>
 // pv=完整词组, gap=要填的小词, cn=中文, l1/l2/l3=三层句子(用 ___ 标空)
 const DATA = [
-  {pv:"turn down", gap:"down", cn:"拒绝；调低",
-   l1:"turn ___",
-   l2:"He turned ___ the invitation because he was too tired to go out.",
-   l3:"She was offered a place at the university, but she turned it ___ to start her own business instead."},
-  {pv:"turn up", gap:"up", cn:"出现；到场",
-   l1:"turn ___",
-   l2:"We waited for an hour, but she never turned ___ .",
-   l3:"Everyone expected him to be late, so they were surprised when he turned ___ early."},
-  {pv:"turn into", gap:"into", cn:"变成",
-   l1:"turn ___",
-   l2:"In the story, the frog turns ___ a handsome prince.",
-   l3:"With a lot of hard work, her small hobby slowly turned ___ a successful business."},
-  {pv:"put off", gap:"off", cn:"推迟",
-   l1:"put ___",
-   l2:"It started to rain, so they put ___ the football match until next week.",
-   l3:"You shouldn't put ___ your homework until the last minute, or you will feel stressed."},
-  {pv:"put on", gap:"on", cn:"穿上；戴上",
-   l1:"put ___",
-   l2:"It was cold outside, so she put ___ her coat before leaving.",
-   l3:"Before going on stage, the actors put ___ their costumes and make-up."},
-  {pv:"put out", gap:"out", cn:"熄灭；扑灭",
-   l1:"put ___",
-   l2:"The firefighters worked hard to put ___ the fire.",
-   l3:"Please put ___ your cigarette, as smoking is not allowed inside the building."},
-  {pv:"take off", gap:"off", cn:"脱下；(飞机)起飞",
-   l1:"take ___",
-   l2:"He took ___ his shoes before entering the house.",
-   l3:"The plane finally took ___ two hours late because of the bad weather."},
-  {pv:"take up", gap:"up", cn:"开始(某项爱好)",
-   l1:"take ___",
-   l2:"She took ___ swimming to keep fit during the summer.",
-   l3:"After he retired, he took ___ painting and soon became quite good at it."},
-  {pv:"get on well with", gap:"on", cn:"与…相处融洽",
-   l1:"get ___ well with",
-   l2:"She gets ___ well with all of her classmates.",
-   l3:"A good team member is someone who gets ___ well with the people around them."},
-  {pv:"look forward to", gap:"to", cn:"期待",
-   l1:"look forward ___",
-   l2:"I'm really looking forward ___ the summer holidays.",
-   l3:"Thank you for your invitation; we all look forward ___ seeing you next month."}
+  {"pv": "base on", "gap": "on", "cn": "基于", "l1": "base ___", "l2": "The film is based ___ a true story.", "l3": "The writer based the whole story ___ his own experiences as a child."},
+  {"pv": "be over", "gap": "over", "cn": "结束", "l1": "be ___", "l2": "The meeting is ___ , so we can go home now.", "l3": "By the time we arrived at the hall, the show was already ___ ."},
+  {"pv": "break down", "gap": "down", "cn": "停止工作；坏了", "l1": "break ___", "l2": "Our car broke ___ on the way to school.", "l3": "The old machine kept breaking ___ , so the factory bought a new one."},
+  {"pv": "break in", "gap": "in", "cn": "打断", "l1": "break ___", "l2": "Sorry to break ___ , but there's a phone call for you.", "l3": "She was telling her story when her little brother broke ___ with a silly question."},
+  {"pv": "bring up", "gap": "up", "cn": "抚养长大", "l1": "bring ___", "l2": "Her grandparents brought her ___ in the countryside.", "l3": "He was brought ___ by his aunt after his parents moved abroad."},
+  {"pv": "call for", "gap": "for", "cn": "号召；需要", "l1": "call ___", "l2": "This kind of job calls ___ a lot of patience.", "l3": "The difficult situation called ___ quick and careful action from everyone."},
+  {"pv": "carry on", "gap": "on", "cn": "继续", "l1": "carry ___", "l2": "Please carry ___ with your work while I'm away.", "l3": "Even after it started to rain, the players carried ___ with the match."},
+  {"pv": "carry out", "gap": "out", "cn": "实施", "l1": "carry ___", "l2": "The scientists carried ___ a lot of tests.", "l3": "The team carefully carried ___ the plan they had made the week before."},
+  {"pv": "check in", "gap": "in", "cn": "登记入住", "l1": "check ___", "l2": "We checked ___ at the hotel as soon as we arrived.", "l3": "Guests are asked to check ___ before three o'clock in the afternoon."},
+  {"pv": "check out", "gap": "out", "cn": "退房", "l1": "check ___", "l2": "We have to check ___ of the hotel by eleven.", "l3": "After breakfast, they packed their bags and checked ___ of the room."},
+  {"pv": "deal with", "gap": "with", "cn": "处理", "l1": "deal ___", "l2": "I'll deal ___ this problem tomorrow morning.", "l3": "A good manager knows how to deal ___ difficult customers politely."},
+  {"pv": "depend on", "gap": "on", "cn": "依赖", "l1": "depend ___", "l2": "Whether we go out depends ___ the weather.", "l3": "Young children still depend ___ their parents for almost everything."},
+  {"pv": "end up", "gap": "up", "cn": "以……结束；最后", "l1": "end ___", "l2": "We got lost and ended ___ taking a taxi home.", "l3": "If you keep spending so much money, you'll end ___ with nothing left."},
+  {"pv": "fill in", "gap": "in", "cn": "填写", "l1": "fill ___", "l2": "Please fill ___ your name and age on this form.", "l3": "Before the trip, each student had to fill ___ a form with their details."},
+  {"pv": "find out", "gap": "out", "cn": "发现；查明", "l1": "find ___", "l2": "I want to find ___ the truth about what happened.", "l3": "She went online to find ___ how much the tickets would cost."},
+  {"pv": "get along", "gap": "along", "cn": "和……相处", "l1": "get ___", "l2": "The two sisters get ___ really well.", "l3": "It's important to get ___ with the people you work with every day."},
+  {"pv": "get off", "gap": "off", "cn": "下车", "l1": "get ___", "l2": "She got ___ the bus at the wrong stop.", "l3": "Remember to get ___ the train at the third station, not the second."},
+  {"pv": "get on", "gap": "on", "cn": "上车", "l1": "get ___", "l2": "He got ___ the train just before the doors closed.", "l3": "We got ___ the bus and looked for two empty seats near the front."},
+  {"pv": "get on well with", "gap": "on", "cn": "和……友好相处", "l1": "get ___ well with", "l2": "She gets ___ well with all of her classmates.", "l3": "A good team member is someone who gets ___ well with everyone around them."},
+  {"pv": "get rid of", "gap": "rid", "cn": "摆脱；扔掉", "l1": "get ___ of", "l2": "It's hard to get ___ of a bad cold.", "l3": "They cleaned the house and got ___ of everything they no longer needed."},
+  {"pv": "give up", "gap": "up", "cn": "放弃", "l1": "give ___", "l2": "Don't give ___ — you're almost there!", "l3": "After failing twice, he almost gave ___ , but his coach told him to keep trying."},
+  {"pv": "go on", "gap": "on", "cn": "继续", "l1": "go ___", "l2": "Please go ___ with your story; it's really interesting.", "l3": "The teacher told the class to go ___ reading while she left the room."},
+  {"pv": "grow up", "gap": "up", "cn": "长大", "l1": "grow ___", "l2": "I want to be a pilot when I grow ___ .", "l3": "She grew ___ in a small village by the sea."},
+  {"pv": "hand in", "gap": "in", "cn": "提交", "l1": "hand ___", "l2": "Please hand ___ your homework on Monday.", "l3": "Students who hand ___ their work late may lose some marks."},
+  {"pv": "hand out", "gap": "out", "cn": "分发", "l1": "hand ___", "l2": "The teacher handed ___ the test papers.", "l3": "Volunteers stood at the door and handed ___ free maps to the visitors."},
+  {"pv": "hang out", "gap": "out", "cn": "出去玩", "l1": "hang ___", "l2": "We like to hang ___ at the park on weekends.", "l3": "During the holidays, she often hangs ___ with her friends at the mall."},
+  {"pv": "look after", "gap": "after", "cn": "照顾", "l1": "look ___", "l2": "Can you look ___ my dog while I'm away?", "l3": "The older children helped to look ___ the younger ones on the trip."},
+  {"pv": "look at", "gap": "at", "cn": "看", "l1": "look ___", "l2": "Please look ___ the picture and answer the question.", "l3": "The teacher asked us to look ___ the map carefully before starting."},
+  {"pv": "look for", "gap": "for", "cn": "寻找", "l1": "look ___", "l2": "I'm looking ___ my keys — have you seen them?", "l3": "She spent all morning looking ___ a birthday present for her mum."},
+  {"pv": "look forward to", "gap": "to", "cn": "期待", "l1": "look forward ___", "l2": "I'm really looking forward ___ the summer holidays.", "l3": "Thank you for the invitation; we all look forward ___ seeing you soon."},
+  {"pv": "look up", "gap": "up", "cn": "查找", "l1": "look ___", "l2": "If you don't know a word, look it ___ in the dictionary.", "l3": "He looked ___ the train times on the internet before leaving home."},
+  {"pv": "pick up", "gap": "up", "cn": "去接；去拿", "l1": "pick ___", "l2": "My dad will pick me ___ after school.", "l3": "She stopped at the shop to pick ___ some bread on her way home."},
+  {"pv": "put away", "gap": "away", "cn": "收拾起来", "l1": "put ___", "l2": "Please put ___ your toys before dinner.", "l3": "After finishing his homework, he put ___ his books and went to bed."},
+  {"pv": "put off", "gap": "off", "cn": "推迟", "l1": "put ___", "l2": "It started to rain, so they put ___ the match until next week.", "l3": "You shouldn't put ___ your homework until the last minute, or you'll feel stressed."},
+  {"pv": "put on", "gap": "on", "cn": "穿上；戴上", "l1": "put ___", "l2": "It was cold outside, so she put ___ her coat.", "l3": "Before going on stage, the actors put ___ their costumes and make-up."},
+  {"pv": "put out", "gap": "out", "cn": "扑灭", "l1": "put ___", "l2": "The firefighters worked hard to put ___ the fire.", "l3": "Please put ___ your cigarette, as smoking isn't allowed inside the building."},
+  {"pv": "run out", "gap": "out", "cn": "用完了", "l1": "run ___", "l2": "We've run ___ of milk, so I need to buy some.", "l3": "Halfway through the trip, the car almost ran ___ of petrol."},
+  {"pv": "set off / set out", "gap": "off", "alt": ["out"], "cn": "出发", "l1": "set ___", "l2": "We set ___ early in the morning to avoid the traffic.", "l3": "Before they set ___ on the long journey, they checked the map one more time."},
+  {"pv": "set up", "gap": "up", "cn": "创立", "l1": "set ___", "l2": "She wants to set ___ her own business one day.", "l3": "After leaving school, the two friends set ___ a small company together."},
+  {"pv": "show up", "gap": "up", "cn": "出现；到场", "l1": "show ___", "l2": "We waited an hour, but he never showed ___ .", "l3": "Everyone was surprised when the famous singer showed ___ at the little café."},
+  {"pv": "split up", "gap": "up", "cn": "分开", "l1": "split ___", "l2": "The teacher split the class ___ into four groups.", "l3": "The friends decided to split ___ and search different parts of the park."},
+  {"pv": "take off", "gap": "off", "cn": "起飞；脱掉", "l1": "take ___", "l2": "He took ___ his shoes before entering the house.", "l3": "The plane finally took ___ two hours late because of the storm."},
+  {"pv": "take up", "gap": "up", "cn": "开始(某项爱好)", "l1": "take ___", "l2": "She took ___ swimming to keep fit this summer.", "l3": "After he retired, he took ___ painting and soon became quite good at it."},
+  {"pv": "try on", "gap": "on", "cn": "试穿", "l1": "try ___", "l2": "Can I try ___ these shoes, please?", "l3": "She tried ___ several dresses before choosing the blue one."},
+  {"pv": "turn down", "gap": "down", "cn": "关小(调低)", "l1": "turn ___", "l2": "The music was too loud, so I turned ___ the volume.", "l3": "Could you turn the radio ___ a little? I'm trying to study."},
+  {"pv": "turn into", "gap": "into", "cn": "变成", "l1": "turn ___", "l2": "In the story, the frog turns ___ a handsome prince.", "l3": "With a lot of hard work, her small hobby slowly turned ___ a real business."},
+  {"pv": "turn off", "gap": "off", "cn": "关掉", "l1": "turn ___", "l2": "Please turn ___ the lights before you leave.", "l3": "He forgot to turn ___ the tap, and water ran all night long."},
+  {"pv": "turn on", "gap": "on", "cn": "打开", "l1": "turn ___", "l2": "It's getting dark — can you turn ___ the light?", "l3": "She turned ___ the TV to watch the football match."},
+  {"pv": "turn up", "gap": "up", "cn": "调大", "l1": "turn ___", "l2": "I can't hear it well; please turn ___ the volume.", "l3": "He turned ___ the music so that everyone at the party could hear it."},
+  {"pv": "wear out", "gap": "out", "cn": "穿坏；用坏", "l1": "wear ___", "l2": "He runs so much that he wears ___ his shoes very quickly.", "l3": "After years of daily use, the old sofa was completely worn ___ ."},
+  {"pv": "work out", "gap": "out", "cn": "健身；锻炼", "l1": "work ___", "l2": "She works ___ at the gym three times a week.", "l3": "To stay healthy, he works ___ every morning before school."},
+  {"pv": "wrap up", "gap": "up", "cn": "包起来；裹起来", "l1": "wrap ___", "l2": "She wrapped ___ the present in colourful paper.", "l3": "It was very cold, so he wrapped ___ the baby in a warm blanket."},
+  {"pv": "write down", "gap": "down", "cn": "记下来 (= put down / take down)", "l1": "write ___", "l2": "Please write ___ your answer in the box.", "l3": "He quickly wrote ___ the phone number before he forgot it."}
 ];
 
 const KEY = "pet-phrasal-day3-v1";
@@ -180,14 +193,16 @@ function check(){
   answered = true;
   const fb = document.getElementById("fb");
   const inp = document.getElementById("ans"); inp.disabled = true;
-  if(val === item.gap.toLowerCase()){
+  var accept=[item.gap.toLowerCase()].concat((item.alt||[]).map(function(x){return x.toLowerCase();}));
+  if(accept.indexOf(val)>=0){
     right++;
     fb.innerHTML = '<span class="ok">✓ 对了！</span><div class="reveal">'+item.pv+' — '+item.cn+'</div>';
     // 答对则从长期错词表移除
     S.wrong = S.wrong.filter(pv=>pv!==item.pv); save(); refreshWrongBadge();
     setTimeout(next, 900);
   } else {
-    fb.innerHTML = '<span class="no">✗ 正确答案：<b>'+item.gap+'</b>　<span class="full">'+item.pv+' = '+item.cn+'</span></span>';
+    var ansTxt=item.gap+((item.alt&&item.alt.length)?' / '+item.alt.join(' / '):'');
+    fb.innerHTML = '<span class="no">✗ 正确答案：<b>'+ansTxt+'</b>　<span class="full">'+item.pv+' = '+item.cn+'</span></span>';
     if(!wrongThisRound.includes(item.pv)) wrongThisRound.push(item.pv);
     if(!S.wrong.includes(item.pv)){ S.wrong.push(item.pv); save(); refreshWrongBadge(); }
     document.getElementById("go").textContent = "下一个";
