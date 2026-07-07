@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PET 单词点读 · Day 4</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(160deg, #eef4ff 0%, #fdf6ec 100%);
+    min-height: 100vh; padding: 24px 16px; color: #333;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; text-align: center; color: #2b5aa7; }
+  .sub { text-align: center; font-size: 13px; color: #888; margin: 6px 0 16px; }
+  .toolbar {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  button {
+    border: none; border-radius: 12px; padding: 12px 20px; font-size: 15px;
+    font-family: inherit; cursor: pointer; transition: transform .1s;
+  }
+  button:active { transform: scale(.96); }
+  .primary { background: #2b5aa7; color: #fff; }
+  .secondary { background: #fff; color: #2b5aa7; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .danger { background: #d9534f; color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .group-title { grid-column: 1 / -1; font-size: 14px; font-weight: bold; color: #888; margin-top: 8px; }
+  .card {
+    background: #fff; border-radius: 14px; padding: 14px 12px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center;
+    border: 2px solid transparent; transition: border-color .15s, background .15s;
+    user-select: none;
+  }
+  .card:hover { border-color: #bcd0ee; }
+  .card.playing { border-color: #2b5aa7; background: #eef4ff; }
+  .card .en { font-size: 19px; font-weight: bold; color: #2b5aa7; }
+  .card .pos { font-size: 12px; color: #bbb; margin-top: 2px; }
+  .card .cn { font-size: 12.5px; color: #888; margin-top: 5px; display: none; line-height: 1.4; }
+  body.show-cn .card .cn, .card.revealed .cn { display: block; }
+  .footer-tip { text-align: center; font-size: 12px; color: #aaa; margin-top: 20px; line-height: 1.8; }
+  #followStatus { text-align: center; font-size: 15px; color: #2b5aa7; margin-bottom: 12px; min-height: 22px; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="margin-bottom:6px"><a href="index.html" style="font-size:13px;color:#999;text-decoration:none">← 返回目录</a></div>
+  <h1>🔊 PET 单词点读 · Day 4</h1>
+  <div class="sub">真人英音发音（有道词典）· PET for Schools 1 · Reading Part 4 · Test 1 &amp; Test 2 ＋ 老师补充词 · 共 33 个<br>先看单词想意思 → 想不起来就点它：播发音 + 显示中文</div>
+
+  <div class="toolbar">
+    <button class="primary" id="followBtn" onclick="toggleFollow()">▶ 跟读模式（自动逐个读）</button>
+    <button class="secondary" onclick="toggleAllCn()">👁 全部显示 / 全部隐藏中文</button>
+  </div>
+  <div id="followStatus"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="footer-tip">
+    跟读模式：每个词读一遍 → 停 3 秒让孩子跟着读 → 再读一遍 → 下一个<br>
+    需要联网 · 如果点了没声音，检查网络或音量
+  </div>
+</div>
+
+<script>
+const WORDS = [
+  // Test 1（12）
+  ["essential", "adj.", "必不可少的；至关重要的"],
+  ["properly", "adv.", "正确地；恰当地"],
+  ["attend", "v.", "参加；出席"],
+  ["creative", "adj.", "有创造力的"],
+  ["recommend", "v.", "推荐；建议"],
+  ["normal", "adj.", "正常的；普通的"],
+  ["artistic", "adj.", "艺术的；有艺术才能的"],
+  ["studio", "n.", "练功室；工作室"],
+  ["competitive", "adj.", "竞争激烈的；好胜的"],
+  ["distance", "n.", "距离；路程"],
+  ["technique", "n.", "技巧；技术"],
+  ["compare", "v.", "比较；对比"],
+  // Test 2（10）
+  ["astronaut", "n.", "宇航员"],
+  ["orbit", "v.", "绕轨道运行"],
+  ["surface", "n.", "表面"],
+  ["gravity", "n.", "重力；引力"],
+  ["conference", "n.", "会议；研讨会"],
+  ["serve", "v.", "提供（食物或饮料）"],
+  ["individual", "adj.", "个人的；单独的"],
+  ["exchange", "v.", "交换"],
+  ["colleagues", "n.", "同事"],
+  ["experiments", "n.", "实验；试验"],
+  // 老师补充词（11）
+  ["performance", "n.", "表演；演出"],
+  ["suitable", "adj.", "合适的；适合的"],
+  ["fortunately", "adv.", "幸运的是"],
+  ["repeat", "v.", "重复"],
+  ["chapter", "n.", "章节"],
+  ["necessary", "adj.", "必要的"],
+  ["special effects", "词组", "特效"],
+  ["disappointed", "adj.", "失望的"],
+  ["predict", "v.", "预测；预言"],
+  ["be impressed by", "词组", "对……印象深刻"],
+  ["intend", "v.", "打算；意图"]
+];
+// 分组边界：Test 1 从 0 开始，Test 2 从 12，补充词从 22
+const GROUPS = { 0: "Test 1 · 舞蹈主题（12 个）", 12: "Test 2 · 太空主题（10 个）", 22: "老师补充词（11 个）" };
+
+const grid = document.getElementById("grid");
+WORDS.forEach((w, i) => {
+  if (GROUPS[i]) {
+    const t = document.createElement("div");
+    t.className = "group-title"; t.textContent = GROUPS[i];
+    grid.appendChild(t);
+  }
+  const card = document.createElement("div");
+  card.className = "card"; card.id = "card" + i;
+  card.innerHTML = `<div class="en">${w[0]}</div><div class="pos">${w[1]}</div><div class="cn">${w[2]}</div>`;
+  card.onclick = () => { playWord(i); card.classList.add("revealed"); };
+  grid.appendChild(card);
+});
+
+function toggleAllCn() {
+  if (document.body.classList.contains("show-cn")) {
+    // 全部隐藏：同时清掉单个点开的
+    document.body.classList.remove("show-cn");
+    document.querySelectorAll(".card.revealed").forEach(c => c.classList.remove("revealed"));
+  } else {
+    document.body.classList.add("show-cn");
+  }
+}
+
+let audio = null;
+function playWord(i, onEnd) {
+  stopAudio();
+  document.querySelectorAll(".card.playing").forEach(c => c.classList.remove("playing"));
+  const card = document.getElementById("card" + i);
+  card.classList.add("playing");
+  // 有道词典真人发音，type=1 英音
+  audio = new Audio("https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(WORDS[i][0]) + "&type=1");
+  audio.onended = () => { card.classList.remove("playing"); if (onEnd) onEnd(); };
+  audio.onerror = () => { // 网络失败时退回系统语音
+    card.classList.remove("playing");
+    ttsFallback(WORDS[i][0], onEnd);
+  };
+  audio.play().catch(() => { card.classList.remove("playing"); ttsFallback(WORDS[i][0], onEnd); });
+}
+
+function stopAudio() {
+  if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); audio = null; }
+  speechSynthesis.cancel();
+}
+
+function ttsFallback(word, onEnd) {
+  const vs = speechSynthesis.getVoices();
+  // 优先挑 Edge 的 Natural 神经网络语音，比普通系统音自然很多
+  const v = vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en-GB"))
+    || vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en"))
+    || vs.find(x => x.lang === "en-GB") || vs.find(x => x.lang.startsWith("en"));
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = "en-GB"; if (v) u.voice = v; u.rate = 0.85;
+  if (onEnd) u.onend = onEnd;
+  speechSynthesis.speak(u);
+}
+
+// ===== 跟读模式 =====
+let following = false, fIdx = 0, fTimer = null;
+function toggleFollow() {
+  if (following) { stopFollow(); return; }
+  following = true; fIdx = 0;
+  document.getElementById("followBtn").textContent = "⏹ 停止跟读";
+  document.getElementById("followBtn").className = "danger";
+  followStep();
+}
+function stopFollow() {
+  following = false;
+  clearTimeout(fTimer);
+  stopAudio();
+  document.querySelectorAll(".card.playing").forEach(c => c.classList.remove("playing"));
+  document.getElementById("followBtn").textContent = "▶ 跟读模式（自动逐个读）";
+  document.getElementById("followBtn").className = "primary";
+  document.getElementById("followStatus").textContent = "";
+}
+function followStep() {
+  if (!following) return;
+  if (fIdx >= WORDS.length) {
+    document.getElementById("followStatus").textContent = `🎉 ${WORDS.length} 个单词跟读完成！`;
+    stopFollowButtonOnly();
+    return;
+  }
+  document.getElementById("followStatus").textContent = `第 ${fIdx + 1} / ${WORDS.length} 个：${WORDS[fIdx][0]}`;
+  document.getElementById("card" + fIdx).scrollIntoView({ behavior: "smooth", block: "center" });
+  const i = fIdx;
+  playWord(i, () => {           // 第一遍
+    fTimer = setTimeout(() => { // 停3秒让孩子跟读
+      if (!following) return;
+      playWord(i, () => {       // 第二遍
+        fTimer = setTimeout(() => { fIdx++; followStep(); }, 1200);
+      });
+    }, 3000);
+  });
+}
+function stopFollowButtonOnly() {
+  following = false;
+  document.getElementById("followBtn").textContent = "▶ 跟读模式（自动逐个读）";
+  document.getElementById("followBtn").className = "primary";
+}
+</script>
+</body>
+</html>
