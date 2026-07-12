@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PET 单词点读 · Day 8</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(160deg, #eef4ff 0%, #fdf6ec 100%);
+    min-height: 100vh; padding: 24px 16px; color: #333;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; text-align: center; color: #2b5aa7; }
+  .sub { text-align: center; font-size: 13px; color: #888; margin: 6px 0 16px; }
+  .toolbar {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  button {
+    border: none; border-radius: 12px; padding: 12px 20px; font-size: 15px;
+    font-family: inherit; cursor: pointer; transition: transform .1s;
+  }
+  button:active { transform: scale(.96); }
+  .primary { background: #2b5aa7; color: #fff; }
+  .secondary { background: #fff; color: #2b5aa7; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .danger { background: #d9534f; color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .group-title { grid-column: 1 / -1; font-size: 14px; font-weight: bold; color: #888; margin-top: 8px; }
+  .card {
+    background: #fff; border-radius: 14px; padding: 14px 12px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center;
+    border: 2px solid transparent; transition: border-color .15s, background .15s;
+    user-select: none;
+  }
+  .card:hover { border-color: #bcd0ee; }
+  .card.playing { border-color: #2b5aa7; background: #eef4ff; }
+  .card .en { font-size: 19px; font-weight: bold; color: #2b5aa7; }
+  .card .pos { font-size: 12px; color: #bbb; margin-top: 2px; }
+  .card .cn { font-size: 12.5px; color: #888; margin-top: 5px; display: none; line-height: 1.4; }
+  body.show-cn .card .cn, .card.revealed .cn { display: block; }
+  .footer-tip { text-align: center; font-size: 12px; color: #aaa; margin-top: 20px; line-height: 1.8; }
+  #followStatus { text-align: center; font-size: 15px; color: #2b5aa7; margin-bottom: 12px; min-height: 22px; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="margin-bottom:6px"><a href="index.html" style="font-size:13px;color:#999;text-decoration:none">← 返回目录</a></div>
+  <h1>🔊 PET 单词点读 · Day 8</h1>
+  <div class="sub">真人英音发音（有道词典）· PFS1 Part4 Test3&amp;4 ＋ PFS2 Part4 Test1 · 共 36 个<br>先看单词想意思 → 想不起来就点它：播发音 + 显示中文</div>
+
+  <div class="toolbar">
+    <button class="primary" id="followBtn" onclick="toggleFollow()">▶ 跟读模式（自动逐个读）</button>
+    <button class="secondary" onclick="toggleAllCn()">👁 全部显示 / 全部隐藏中文</button>
+  </div>
+  <div id="followStatus"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="footer-tip">
+    跟读模式：每个词读一遍 → 停 3 秒让孩子跟着读 → 再读一遍 → 下一个<br>
+    需要联网 · 如果点了没声音，检查网络或音量
+  </div>
+</div>
+
+<script>
+const WORDS = [
+  // PFS1 Test 3（20）
+  ["enroll", "v.", "注册；入学"],
+  ["biology", "n.", "生物学"],
+  ["naturalist", "n.", "博物学家；自然科学家"],
+  ["frozen", "adj.", "冷冻的；结冰的"],
+  ["notice", "v.", "注意到；察觉"],
+  ["defrost", "v.", "解冻"],
+  ["freshness", "n.", "新鲜；新鲜度"],
+  ["flavour", "n.", "味道；风味"],
+  ["realise", "v.", "意识到；认识到"],
+  ["success", "n.", "成功"],
+  ["experiment", "v.", "实验；尝试"],
+  ["crystals", "n.", "晶体；结晶"],
+  ["method", "n.", "方法；方式"],
+  ["invent", "v.", "发明；创造"],
+  ["metal", "n.", "金属"],
+  ["production", "n.", "生产；制造"],
+  ["rare", "adj.", "罕见的；稀有的"],
+  ["however", "adv.", "然而；但是"],
+  ["invention", "n.", "发明；发明物"],
+  ["immediately", "adv.", "立刻；马上"],
+  // PFS1 Test 4（7）
+  ["research", "n.", "研究；调查"],
+  ["disturb", "v.", "打扰；扰乱"],
+  ["reply", "v.", "回复；答复"],
+  ["bad-tempered", "adj.", "脾气坏的；易怒的"],
+  ["article", "n.", "文章；报道"],
+  ["advantage", "n.", "优势；好处"],
+  ["alternative", "n.", "替代选择；其他选项"],
+  // PFS2 Test 1（9）
+  ["audience", "n.", "观众；听众"],
+  ["judge", "n.", "评委；裁判"],
+  ["impressed", "adj.", "印象深刻的"],
+  ["spare", "adj.", "空闲的；多余的"],
+  ["secret", "n.", "秘密；秘诀"],
+  ["perform", "v.", "表演；演出"],
+  ["wedding", "n.", "婚礼"],
+  ["nervous", "adj.", "紧张的；焦虑的"],
+  ["take up", "词组", "开始从事；学习（新事物）"]
+];
+// 分组边界：Test 3 从 0，Test 4 从 20，PFS2 Test 1 从 27
+const GROUPS = { 0: "PFS1 · Part4 · Test 3 · 冷冻食品（20 个）", 20: "PFS1 · Part4 · Test 4 · 发消息（7 个）", 27: "PFS2 · Part4 · Test 1 · 魔术表演（9 个）" };
+
+const grid = document.getElementById("grid");
+WORDS.forEach((w, i) => {
+  if (GROUPS[i]) {
+    const t = document.createElement("div");
+    t.className = "group-title"; t.textContent = GROUPS[i];
+    grid.appendChild(t);
+  }
+  const card = document.createElement("div");
+  card.className = "card"; card.id = "card" + i;
+  card.innerHTML = `<div class="en">${w[0]}</div><div class="pos">${w[1]}</div><div class="cn">${w[2]}</div>`;
+  card.onclick = () => { playWord(i); card.classList.add("revealed"); };
+  grid.appendChild(card);
+});
+
+function toggleAllCn() {
+  if (document.body.classList.contains("show-cn")) {
+    // 全部隐藏：同时清掉单个点开的
+    document.body.classList.remove("show-cn");
+    document.querySelectorAll(".card.revealed").forEach(c => c.classList.remove("revealed"));
+  } else {
+    document.body.classList.add("show-cn");
+  }
+}
+
+let audio = null;
+function playWord(i, onEnd) {
+  stopAudio();
+  document.querySelectorAll(".card.playing").forEach(c => c.classList.remove("playing"));
+  const card = document.getElementById("card" + i);
+  card.classList.add("playing");
+  // 有道词典真人发音，type=1 英音
+  audio = new Audio("https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(WORDS[i][0]) + "&type=1");
+  audio.onended = () => { card.classList.remove("playing"); if (onEnd) onEnd(); };
+  audio.onerror = () => { // 网络失败时退回系统语音
+    card.classList.remove("playing");
+    ttsFallback(WORDS[i][0], onEnd);
+  };
+  audio.play().catch(() => { card.classList.remove("playing"); ttsFallback(WORDS[i][0], onEnd); });
+}
+
+function stopAudio() {
+  if (audio) { audio.onended = null; audio.onerror = null; audio.pause(); audio = null; }
+  speechSynthesis.cancel();
+}
+
+function ttsFallback(word, onEnd) {
+  const vs = speechSynthesis.getVoices();
+  // 优先挑 Edge 的 Natural 神经网络语音，比普通系统音自然很多
+  const v = vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en-GB"))
+    || vs.find(x => /Natural/i.test(x.name) && x.lang.startsWith("en"))
+    || vs.find(x => x.lang === "en-GB") || vs.find(x => x.lang.startsWith("en"));
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = "en-GB"; if (v) u.voice = v; u.rate = 0.85;
+  if (onEnd) u.onend = onEnd;
+  speechSynthesis.speak(u);
+}
+
+// ===== 跟读模式 =====
+let following = false, fIdx = 0, fTimer = null;
+function toggleFollow() {
+  if (following) { stopFollow(); return; }
+  following = true; fIdx = 0;
+  document.getElementById("followBtn").textContent = "⏹ 停止跟读";
+  document.getElementById("followBtn").className = "danger";
+  followStep();
+}
+function stopFollow() {
+  following = false;
+  clearTimeout(fTimer);
+  stopAudio();
+  document.querySelectorAll(".card.playing").forEach(c => c.classList.remove("playing"));
+  document.getElementById("followBtn").textContent = "▶ 跟读模式（自动逐个读）";
+  document.getElementById("followBtn").className = "primary";
+  document.getElementById("followStatus").textContent = "";
+}
+function followStep() {
+  if (!following) return;
+  if (fIdx >= WORDS.length) {
+    document.getElementById("followStatus").textContent = `🎉 ${WORDS.length} 个单词跟读完成！`;
+    stopFollowButtonOnly();
+    return;
+  }
+  document.getElementById("followStatus").textContent = `第 ${fIdx + 1} / ${WORDS.length} 个：${WORDS[fIdx][0]}`;
+  document.getElementById("card" + fIdx).scrollIntoView({ behavior: "smooth", block: "center" });
+  const i = fIdx;
+  playWord(i, () => {           // 第一遍
+    fTimer = setTimeout(() => { // 停3秒让孩子跟读
+      if (!following) return;
+      playWord(i, () => {       // 第二遍
+        fTimer = setTimeout(() => { fIdx++; followStep(); }, 1200);
+      });
+    }, 3000);
+  });
+}
+function stopFollowButtonOnly() {
+  following = false;
+  document.getElementById("followBtn").textContent = "▶ 跟读模式（自动逐个读）";
+  document.getElementById("followBtn").className = "primary";
+}
+</script>
+</body>
+</html>
